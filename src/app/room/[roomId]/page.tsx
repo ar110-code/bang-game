@@ -330,7 +330,23 @@ export default function RoomPage() {
     return myPlayer.hand.find((c: Card) => c.id === selectedCardId) || null;
   }, [selectedCardId, myPlayer]);
 
+  // Action lock: Active while a Bang showdown, attack effect, or resolution animation is in progress
+  const isBangShowdownActive = Boolean(
+    (activeEffect &&
+      (activeEffect.type === 'bang' ||
+        activeEffect.type === 'missed' ||
+        activeEffect.type === 'hit' ||
+        activeEffect.type === 'barrel_success')) ||
+      gameState?.pendingReaction?.type === 'bang'
+  );
+
+  const isGameActionLocked = isBangShowdownActive || Boolean(activeEffect);
+
   const handleSelectCard = (card: Card) => {
+    if (isGameActionLocked) {
+      setErrorMessage('تا اتمام انیمیشن شلیک و رخداد فعلی، امکان انتخاب یا بازی کارت وجود ندارد.');
+      return;
+    }
     soundEngine.playCardDraw();
     if (selectedCardId === card.id) {
       setSelectedCardId(null);
@@ -340,6 +356,10 @@ export default function RoomPage() {
   };
 
   const handlePlaySelectedCard = () => {
+    if (isGameActionLocked) {
+      setErrorMessage('تا اتمام انیمیشن شلیک، امکان بازی کارت وجود ندارد.');
+      return;
+    }
     if (!selectedCardId) return;
     const socket = getSocket();
     socket.emit('play_card', { roomId, cardId: selectedCardId });
@@ -347,6 +367,10 @@ export default function RoomPage() {
   };
 
   const handleSelectTarget = (targetPlayerId: string) => {
+    if (isGameActionLocked) {
+      setErrorMessage('تا اتمام انیمیشن شلیک، امکان هدف‌گیری و شلیک مجدد وجود ندارد.');
+      return;
+    }
     if (!selectedCardId) return;
 
     // Check if playing Cat Balou or Panic: open interactive card selection modal!
@@ -390,7 +414,7 @@ export default function RoomPage() {
   };
 
   const handleConfirmTargetCard = (choice: TargetCardChoice) => {
-    if (!targetSelectModalData) return;
+    if (isGameActionLocked || !targetSelectModalData) return;
     const socket = getSocket();
     socket.emit('play_card', {
       roomId,
@@ -408,11 +432,19 @@ export default function RoomPage() {
   };
 
   const handleDiscardCard = (cardId: string) => {
+    if (isGameActionLocked) {
+      setErrorMessage('تا اتمام انیمیشن شلیک، امکان سوزاندن کارت وجود ندارد.');
+      return;
+    }
     const socket = getSocket();
     socket.emit('discard_card', { roomId, cardId });
   };
 
   const handleEndTurn = () => {
+    if (isGameActionLocked) {
+      setErrorMessage('تا اتمام انیمیشن شلیک، امکان پایان نوبت وجود ندارد.');
+      return;
+    }
     const socket = getSocket();
     socket.emit('end_turn', { roomId });
     setSelectedCardId(null);
@@ -423,11 +455,16 @@ export default function RoomPage() {
     targetPlayerId?: string;
     kitSelectedIndices?: number[];
   }) => {
+    if (isGameActionLocked) return;
     const socket = getSocket();
     socket.emit('resolve_special_draw', { roomId, choice });
   };
 
   const handleUseSidKetchum = (cardIds: string[]) => {
+    if (isGameActionLocked) {
+      setErrorMessage('تا اتمام انیمیشن شلیک، امکان بازیابی جان وجود ندارد.');
+      return;
+    }
     const socket = getSocket();
     socket.emit('use_sid_ketchum', { roomId, cardIds });
   };
@@ -644,6 +681,7 @@ export default function RoomPage() {
                 onZoomOut={() => setTableZoomOffset((prev) => Math.max(-0.35, prev - 0.08))}
                 onResetZoom={() => setTableZoomOffset(0)}
                 speakingPlayerIds={speakingPlayerIds}
+                isActionLocked={isGameActionLocked}
               />
             </div>
 
@@ -709,6 +747,7 @@ export default function RoomPage() {
               onEndTurn={handleEndTurn}
               onDiscardCard={handleDiscardCard}
               onUseSidKetchum={handleUseSidKetchum}
+              isEffectActive={isGameActionLocked}
             />
           )}
 

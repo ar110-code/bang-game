@@ -20,6 +20,7 @@ interface WesternTableProps {
   onZoomOut?: () => void;
   onResetZoom?: () => void;
   speakingPlayerIds?: string[];
+  isActionLocked?: boolean;
 }
 
 export const WesternTable: React.FC<WesternTableProps> = ({
@@ -37,6 +38,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
   onZoomOut,
   onResetZoom,
   speakingPlayerIds = [],
+  isActionLocked = false,
 }) => {
   const myPlayer = gameState.players.find((p) => p.id === myPlayerId);
 
@@ -246,10 +248,14 @@ export const WesternTable: React.FC<WesternTableProps> = ({
                 player={player}
                 isMe={isMe}
                 isCurrentTurn={gameState.currentTurnPlayerId === player.id}
-                isTargetable={isTarget}
-                targetActionType={actionType}
+                isTargetable={isTarget && !isActionLocked}
+                targetActionType={isActionLocked ? undefined : actionType}
                 effectiveDistance={isMe ? undefined : getEffectiveDistanceForPlayer(player)}
-                onSelectTarget={() => onSelectTarget(player.id)}
+                onSelectTarget={() => {
+                  if (!isActionLocked) {
+                    onSelectTarget(player.id);
+                  }
+                }}
                 onInspect={onInspectPlayer}
                 compact={true}
                 isSpeaking={speakingPlayerIds?.includes(player.id)}

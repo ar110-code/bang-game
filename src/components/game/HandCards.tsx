@@ -17,6 +17,7 @@ interface HandCardsProps {
   onDiscardCard: (cardId: string) => void;
   onUseSidKetchum?: (cardIds: string[]) => void;
   cardSize?: 'sm' | 'md' | 'lg';
+  isEffectActive?: boolean;
 }
 
 export const HandCards: React.FC<HandCardsProps> = ({
@@ -34,6 +35,7 @@ export const HandCards: React.FC<HandCardsProps> = ({
   onDiscardCard,
   onUseSidKetchum,
   cardSize = 'md',
+  isEffectActive = false,
 }) => {
   const [isSidHealingMode, setIsSidHealingMode] = useState(false);
   const [sidSelectedCardIds, setSidSelectedCardIds] = useState<string[]>([]);
@@ -108,7 +110,12 @@ export const HandCards: React.FC<HandCardsProps> = ({
       {/* Action Bar Above Hand Cards */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-2 px-2 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          {isSidHealingMode ? (
+          {isEffectActive ? (
+            <div className="bg-amber-500/20 text-amber-200 border border-amber-500/40 px-3 py-1 rounded-xl text-xs font-bold animate-pulse flex items-center gap-1.5">
+              <span className="text-sm">⏳</span>
+              <span>در حال اجرای شلیک و انیمیشن نبرد... دسترسی موقتاً مسدود است</span>
+            </div>
+          ) : isSidHealingMode ? (
             <div className="bg-red-500/20 text-red-300 border border-red-500/40 px-3 py-1 rounded-xl text-xs font-bold animate-pulse">
               🩸 ۲ کارت برای سوزاندن و بازیابی ۱ جان انتخاب کنید ({sidSelectedCardIds.length} از ۲)
             </div>
@@ -159,12 +166,13 @@ export const HandCards: React.FC<HandCardsProps> = ({
           {/* Sid Ketchum Heal Ability Toggle */}
           {canSidHeal && !isSidHealingMode && (
             <button
+              disabled={isEffectActive}
               onClick={() => {
                 setIsSidHealingMode(true);
                 setSidSelectedCardIds([]);
                 onCancelSelection();
               }}
-              className="bg-red-950/80 hover:bg-red-900 active:scale-95 text-red-200 border border-red-600/70 text-xs font-bold px-3 py-2 rounded-xl shadow transition-all flex items-center gap-1"
+              className="bg-red-950/80 hover:bg-red-900 disabled:opacity-40 disabled:pointer-events-none active:scale-95 text-red-200 border border-red-600/70 text-xs font-bold px-3 py-2 rounded-xl shadow transition-all flex items-center gap-1"
               title="سوزاندن ۲ کارت دلخواه برای بازیابی ۱ جان"
             >
               <span>🩸 درمان سید کچام (+۱ جان)</span>
@@ -174,10 +182,10 @@ export const HandCards: React.FC<HandCardsProps> = ({
           {isSidHealingMode && (
             <div className="flex items-center gap-2">
               <button
-                disabled={sidSelectedCardIds.length !== 2}
+                disabled={sidSelectedCardIds.length !== 2 || isEffectActive}
                 onClick={handleConfirmSidHeal}
                 className={`text-xs font-bold px-3 py-2 rounded-xl shadow transition-all flex items-center gap-1 ${
-                  sidSelectedCardIds.length === 2
+                  sidSelectedCardIds.length === 2 && !isEffectActive
                     ? 'bg-red-600 hover:bg-red-500 text-white border border-red-400 active:scale-95 animate-pulse cursor-pointer'
                     : 'bg-saloon-800 text-zinc-500 border border-saloon-700 cursor-not-allowed'
                 }`}
@@ -198,8 +206,9 @@ export const HandCards: React.FC<HandCardsProps> = ({
 
           {isMyTurn && !isDiscardPhase && !isSidHealingMode && (
             <button
+              disabled={isEffectActive}
               onClick={onEndTurn}
-              className="bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-amber-200 border border-amber-600/50 text-xs font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-1"
+              className="bg-saloon-800 hover:bg-saloon-700 disabled:opacity-40 disabled:pointer-events-none active:scale-95 text-amber-200 border border-amber-600/50 text-xs font-bold px-4 py-2 rounded-xl shadow transition-all flex items-center gap-1"
             >
               <span>پایان نوبت ⏭️</span>
             </button>
@@ -256,8 +265,9 @@ export const HandCards: React.FC<HandCardsProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             {isSelfPlayable && isMyTurn && !isDiscardPhase && (
               <button
+                disabled={isEffectActive}
                 onClick={onPlaySelectedCard}
-                className="bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs font-bold px-3.5 sm:px-4 py-2 rounded-xl shadow-lg border border-amber-400 transition-all flex items-center gap-1"
+                className="bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:pointer-events-none active:scale-95 text-white text-xs font-bold px-3.5 sm:px-4 py-2 rounded-xl shadow-lg border border-amber-400 transition-all flex items-center gap-1"
               >
                 <span>⚡ بازی کردن</span>
               </button>
@@ -286,13 +296,19 @@ export const HandCards: React.FC<HandCardsProps> = ({
               : card.id === selectedCardId;
 
             return (
-              <div key={card.id} className="flex-shrink-0">
+              <div
+                key={card.id}
+                className={`flex-shrink-0 transition-all duration-200 ${
+                  isEffectActive ? 'pointer-events-none opacity-50 grayscale-[25%]' : ''
+                }`}
+              >
                 <CardComponent
                   card={card}
                   size={cardSize}
                   isSelected={isSelected}
-                  isPlayable={isMyTurn || isDiscardPhase || isSidHealingMode}
+                  isPlayable={!isEffectActive && (isMyTurn || isDiscardPhase || isSidHealingMode)}
                   onClick={() => {
+                    if (isEffectActive) return;
                     if (isSidHealingMode) {
                       toggleSidCard(card.id);
                     } else if (isDiscardPhase) {

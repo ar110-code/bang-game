@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PublicGameState, PublicPlayer, ActionEffect, Card } from '@/lib/game-engine/types';
 import { BulletIndicator } from '../ui/BulletIndicator';
 import { CardComponent } from './CardComponent';
@@ -65,6 +65,13 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
       if (activeEffect.type === 'bang') {
         setIsVisible(true);
         setStatus('aiming');
+        if (!isBangPending) {
+          const t = setTimeout(() => {
+            setIsVisible(false);
+            onDismissEffect?.();
+          }, 2000);
+          return () => clearTimeout(t);
+        }
       } else if (activeEffect.type === 'missed') {
         setIsVisible(true);
         setStatus('defended');
@@ -73,7 +80,7 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
         const t = setTimeout(() => {
           setIsVisible(false);
           onDismissEffect?.();
-        }, 1600);
+        }, 2000);
         return () => clearTimeout(t);
       } else if (activeEffect.type === 'barrel_success') {
         setIsVisible(true);
@@ -83,10 +90,10 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
         const t = setTimeout(() => {
           setIsVisible(false);
           onDismissEffect?.();
-        }, 1600);
+        }, 2000);
         return () => clearTimeout(t);
       } else if (activeEffect.type === 'hit') {
-        // Only trigger if this hit is part of a showdown or targeted attack
+        // Trigger showdown damage outcome
         if (activeEffect.targetPlayerId) {
           setIsVisible(true);
           setStatus('hit');
@@ -94,13 +101,14 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
           const t = setTimeout(() => {
             setIsVisible(false);
             onDismissEffect?.();
-          }, 1600);
+          }, 2000);
           return () => clearTimeout(t);
         }
       }
     } else if (!isBangPending && status === 'aiming') {
       // Pending reaction finished without an explicit effect
       setIsVisible(false);
+      onDismissEffect?.();
     }
   }, [isBangPending, activeEffect?.id, activeEffect?.type]);
 

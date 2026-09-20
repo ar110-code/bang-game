@@ -22,6 +22,7 @@ const botActionTimers = new Map<string, NodeJS.Timeout>();
 const roomCountdownTimers = new Map<string, NodeJS.Timeout>();
 const roomChatMap = new Map<string, ChatMessage[]>();
 const voiceRooms = new Map<string, Map<string, VoicePeerState>>();
+const roomEffectLocks = new Map<string, number>();
 
 export function setupSocketHandlers(io: Server) {
   function broadcastState(roomId: string) {
@@ -41,7 +42,20 @@ export function setupSocketHandlers(io: Server) {
     }
 
     if (state.lastEffect) {
+      const effType = state.lastEffect.type;
       io.to(roomId).emit('action_effect', state.lastEffect);
+
+      // Lock room actions during animations so no one can play cards or end turn prematurely
+      if (effType === 'missed' || effType === 'hit' || effType === 'barrel_success') {
+        roomEffectLocks.set(roomId, Date.now() + 2200);
+      } else if (effType === 'bang' && !state.pendingReaction) {
+        roomEffectLocks.set(roomId, Date.now() + 2500);
+      } else if (effType === 'dynamite_explode') {
+        roomEffectLocks.set(roomId, Date.now() + 2500);
+      } else if (effType === 'gatling' || effType === 'indians') {
+        roomEffectLocks.set(roomId, Date.now() + 1800);
+      }
+
       state.lastEffect = null;
     }
 
@@ -69,13 +83,33 @@ export function setupSocketHandlers(io: Server) {
     const existingTimer = botActionTimers.get(roomId);
     if (botTargetId) {
       if (!existingTimer) {
+        // Paced bot thinking and reaction time:
+        // Wait until any active attack/showdown animation completes, plus natural thinking delay
+        const lockUntil = roomEffectLocks.get(roomId) || 0;
+        const now = Date.now();
+        const lockWait = lockUntil > now ? lockUntil - now : 0;
+
+        let baseDelay = 1800;
+        if (state.pendingReaction) {
+          // Bot responding to Bang / Duel / Indians attack
+          baseDelay = 2000 + Math.floor(Math.random() * 500); // 2.0s - 2.5s
+        } else if (state.turnPhase === 'discard') {
+          // Discarding cards
+          baseDelay = 1300 + Math.floor(Math.random() * 400); // 1.3s - 1.7s
+        } else {
+          // Normal action phase (equipping, playing utility, shooting)
+          baseDelay = 1800 + Math.floor(Math.random() * 600); // 1.8s - 2.4s
+        }
+
+        const totalDelay = lockWait + baseDelay;
+
         const timer = setTimeout(() => {
           botActionTimers.delete(roomId);
           const currentState = rooms.get(roomId);
           if (currentState && currentState.status === 'playing') {
             executeBotTurn(currentState, botTargetId!, () => broadcastState(roomId));
           }
-        }, 400);
+        }, totalDelay);
         botActionTimers.set(roomId, timer);
       }
     } else if (existingTimer) {
@@ -241,6 +275,17 @@ export function setupSocketHandlers(io: Server) {
         const mapping = socketPlayerMap.get(socket.id);
         if (!state || !mapping) return;
 
+        const lockUntil = roomEffectLocks.get(cleanRoomId);
+        if (lockUntil && Date.now() < lockUntil) {
+          socket.emit('error_message', 'لطفاً تا پایان انیمیشن شلیک و افکت بازی منتظر بمانید.');
+          return;
+        }
+
+        if (state.pendingReaction) {
+          socket.emit('error_message', 'ابتدا باید به شلیک یا رخداد فعلی بازی پاسخ داده شود.');
+          return;
+        }
+
         const result = playCard(state, mapping.playerId, cardId, targetPlayerId, targetCardChoice);
         if (!result.success && result.message) {
           socket.emit('error_message', result.message);
@@ -268,6 +313,17 @@ export function setupSocketHandlers(io: Server) {
       const mapping = socketPlayerMap.get(socket.id);
       if (!state || !mapping) return;
 
+      const lockUntil = roomEffectLocks.get(cleanRoomId);
+      if (lockUntil && Date.now() < lockUntil) {
+        socket.emit('error_message', 'لطفاً تا پایان انیمیشن شلیک منتظر بمانید.');
+        return;
+      }
+
+      if (state.pendingReaction) {
+        socket.emit('error_message', 'در حال حاضر واکنشی در جریان است و نمی‌توانید کارت بسوزانید.');
+        return;
+      }
+
       const result = discardExcessCard(state, mapping.playerId, cardId);
       if (!result.success && result.message) {
         socket.emit('error_message', result.message);
@@ -280,6 +336,17 @@ export function setupSocketHandlers(io: Server) {
       const state = rooms.get(cleanRoomId);
       const mapping = socketPlayerMap.get(socket.id);
       if (!state || !mapping) return;
+
+      const lockUntil = roomEffectLocks.get(cleanRoomId);
+      if (lockUntil && Date.now() < lockUntil) {
+        socket.emit('error_message', 'لطفاً تا پایان انیمیشن شلیک منتظر بمانید.');
+        return;
+      }
+
+      if (state.pendingReaction) {
+        socket.emit('error_message', 'در حال حاضر واکنشی در جریان است و نمی‌توانید نوبت را پایان دهید.');
+        return;
+      }
 
       const result = endTurn(state, mapping.playerId);
       if (!result.success && result.message) {
@@ -306,6 +373,12 @@ export function setupSocketHandlers(io: Server) {
         const mapping = socketPlayerMap.get(socket.id);
         if (!state || !mapping) return;
 
+        const lockUntil = roomEffectLocks.get(cleanRoomId);
+        if (lockUntil && Date.now() < lockUntil) {
+          socket.emit('error_message', 'لطفاً تا پایان انیمیشن شلیک منتظر بمانید.');
+          return;
+        }
+
         const result = resolveSpecialDraw(state, mapping.playerId, choice);
         if (!result.success && result.message) {
           socket.emit('error_message', result.message);
@@ -321,6 +394,12 @@ export function setupSocketHandlers(io: Server) {
         const state = rooms.get(cleanRoomId);
         const mapping = socketPlayerMap.get(socket.id);
         if (!state || !mapping) return;
+
+        const lockUntil = roomEffectLocks.get(cleanRoomId);
+        if (lockUntil && Date.now() < lockUntil) {
+          socket.emit('error_message', 'لطفاً تا پایان انیمیشن شلیک منتظر بمانید.');
+          return;
+        }
 
         const result = useSidKetchumHeal(state, mapping.playerId, cardIds);
         if (!result.success && result.message) {
