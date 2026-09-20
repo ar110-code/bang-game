@@ -421,6 +421,70 @@ class SoundEngine {
   }
 
   /**
+   * 💥 Bullet Damage Hit Impact (اصابت تیر و کم شدن جان)
+   * Visceral low punchy thud + flesh impact noise + grunt drop
+   */
+  public playDamageHit(volume: number = 0.85): void {
+    if (this.muted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const t = ctx.currentTime;
+
+    // 1. Heavy fleshy thump
+    const thump = ctx.createOscillator();
+    const thumpGain = ctx.createGain();
+    thump.type = 'triangle';
+    thump.frequency.setValueAtTime(260, t);
+    thump.frequency.exponentialRampToValueAtTime(45, t + 0.16);
+    thumpGain.gain.setValueAtTime(0.9 * volume, t);
+    thumpGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    thump.connect(thumpGain);
+    thumpGain.connect(ctx.destination);
+    thump.start(t);
+    thump.stop(t + 0.22);
+
+    // 2. Impact transient noise
+    const bufferSize = Math.floor(ctx.sampleRate * 0.15);
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(800, t);
+    filter.frequency.exponentialRampToValueAtTime(150, t + 0.14);
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.6 * volume, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(t);
+    noise.stop(t + 0.15);
+
+    // 3. Sub harmonic grunt drop
+    const grunt = ctx.createOscillator();
+    const gruntGain = ctx.createGain();
+    grunt.type = 'sawtooth';
+    grunt.frequency.setValueAtTime(140, t + 0.04);
+    grunt.frequency.exponentialRampToValueAtTime(60, t + 0.25);
+    const gruntFilter = ctx.createBiquadFilter();
+    gruntFilter.type = 'lowpass';
+    gruntFilter.frequency.setValueAtTime(350, t + 0.04);
+    gruntGain.gain.setValueAtTime(0.4 * volume, t + 0.04);
+    gruntGain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    grunt.connect(gruntFilter);
+    gruntFilter.connect(gruntGain);
+    gruntGain.connect(ctx.destination);
+    grunt.start(t + 0.04);
+    grunt.stop(t + 0.28);
+  }
+
+  /**
    * 🔥 Cat Balou Fire Burn (کت بالو)
    * Sizzling fire flame whoosh
    */

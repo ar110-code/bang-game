@@ -255,9 +255,15 @@ export const WesternTable: React.FC<WesternTableProps> = ({
           );
         })}
 
-        {/* Action Animation Overlay - CENTERED EXACTLY IN THE TABLE FELT! */}
+        {/* Action Animation Overlay - Non-bang effects centered in felt (bang & damage are handled by BangShowdownOverlay) */}
         <ActionAnimationOverlay
-          effect={activeEffect || gameState.lastEffect || null}
+          effect={
+            (activeEffect && activeEffect.type !== 'bang' && activeEffect.type !== 'hit' && activeEffect.type !== 'missed')
+              ? activeEffect
+              : (gameState.lastEffect && gameState.lastEffect.type !== 'bang' && gameState.lastEffect.type !== 'hit' && gameState.lastEffect.type !== 'missed')
+              ? gameState.lastEffect
+              : null
+          }
           containerMode="table"
           onComplete={onEffectComplete}
         />

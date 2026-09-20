@@ -8,6 +8,7 @@ import { LobbyRoom } from '@/components/lobby/LobbyRoom';
 import { WesternTable } from '@/components/game/WesternTable';
 import { HandCards } from '@/components/game/HandCards';
 import { ReactionModal } from '@/components/game/ReactionModal';
+import { BangShowdownOverlay } from '@/components/game/BangShowdownOverlay';
 import { GameLog } from '@/components/game/GameLog';
 import { GameOverModal } from '@/components/game/GameOverModal';
 import { CharacterRevealModal } from '@/components/game/CharacterRevealModal';
@@ -586,8 +587,17 @@ export default function RoomPage() {
               </div>
             )}
 
-          {/* Reaction Modal if attacked */}
-          {gameState.pendingReaction && myPlayer && (
+          {/* Cinematic Western Bang Showdown Arena (Table blurs, shooter & defender standoff side by side) */}
+          <BangShowdownOverlay
+            gameState={gameState}
+            myPlayerId={myPlayerId}
+            activeEffect={activeEffect}
+            onRespondReaction={handleRespondReaction}
+            onDismissEffect={() => setActiveEffect(null)}
+          />
+
+          {/* Reaction Modal for non-bang attacks (General Store, Duel, Indians, Gatling) */}
+          {gameState.pendingReaction && gameState.pendingReaction.type !== 'bang' && myPlayer && (
             <ReactionModal
               pendingReaction={gameState.pendingReaction}
               myPlayer={myPlayer}

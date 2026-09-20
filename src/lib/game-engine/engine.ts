@@ -13,29 +13,9 @@ import {
 import { CHARACTERS, ROLE_DISTRIBUTION } from './constants';
 import { createDeck, drawCards, performDrawTest, shuffle } from './deck';
 import { canShootTarget, calculateEffectiveDistance } from './distance';
-import { addLog, damagePlayer, handleElimination, checkWinConditions } from './actions';
+import { addLog, damagePlayer, handleElimination, checkWinConditions, triggerEffect } from './actions';
 
-export function triggerEffect(
-  state: GameState,
-  type: ActionEffectType,
-  sourcePlayerId?: string,
-  targetPlayerId?: string,
-  cardName?: string
-) {
-  const source = sourcePlayerId ? state.players.find((p) => p.id === sourcePlayerId) : undefined;
-  const target = targetPlayerId ? state.players.find((p) => p.id === targetPlayerId) : undefined;
-
-  state.lastEffect = {
-    id: `eff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    type,
-    sourcePlayerId,
-    targetPlayerId,
-    sourcePlayerName: source?.name,
-    targetPlayerName: target?.name,
-    cardName,
-    timestamp: Date.now(),
-  };
-}
+export { triggerEffect };
 
 export function createInitialState(roomId: string): GameState {
   return {
@@ -392,7 +372,7 @@ function executePlayCard(
         const test1 = performDrawTest(state, (c) => c.suit === 'hearts', isLucky);
         if (test1.success) {
           barrelSuccesses += 1;
-          triggerEffect(state, 'barrel_success', target.id, undefined, 'barrel');
+          triggerEffect(state, 'barrel_success', playerId, target.id, 'barrel');
           addLog(
             state,
             `🛡️ بشکه ژوقدونه! (${target.name}) کارت دل رو شد (${test1.card.rank} ${test1.card.suit}) - ۱ دفاع موفق!`,
@@ -411,7 +391,7 @@ function executePlayCard(
           const test2 = performDrawTest(state, (c) => c.suit === 'hearts', isLucky);
           if (test2.success) {
             barrelSuccesses += 1;
-            triggerEffect(state, 'barrel_success', target.id, undefined, 'barrel');
+            triggerEffect(state, 'barrel_success', playerId, target.id, 'barrel');
             addLog(
               state,
               `🛡️ تست بشکه مجهز ژوقدونه (${target.name}) نیز موفق شد! (${test2.card.rank} ${test2.card.suit}) - ۱ دفاع دیگر!`,
@@ -429,7 +409,7 @@ function executePlayCard(
         const test = performDrawTest(state, (c) => c.suit === 'hearts', isLucky);
         if (test.success) {
           barrelSuccesses += 1;
-          triggerEffect(state, 'barrel_success', target.id, undefined, 'barrel');
+          triggerEffect(state, 'barrel_success', playerId, target.id, 'barrel');
           addLog(
             state,
             `🛡️ ${target.name} پشت بشکه سنگر گرفت! (کارت دل رو شد: ${test.card.rank} ${test.card.suit}) - ۱ دفاع موفق!`,
@@ -879,7 +859,7 @@ export function respondToReaction(
     if (pending.type === 'bang') {
       pending.missedPlayed += 1;
       addLog(state, `💨 ${player.name} کارت زپلشک! انداخت!`, 'defense');
-      triggerEffect(state, 'missed', player.id, undefined, 'missed');
+      triggerEffect(state, 'missed', pending.sourcePlayerId, player.id, 'missed');
 
       if (pending.missedPlayed >= pending.missedNeeded) {
         // Attack completely avoided

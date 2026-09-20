@@ -47,6 +47,9 @@ export const ActionAnimationOverlay: React.FC<ActionAnimationOverlayProps> = ({
       case 'missed':
         soundEngine.playRicochet();
         break;
+      case 'hit':
+        soundEngine.playDamageHit();
+        break;
       case 'beer':
         soundEngine.playBeerDrink();
         break;

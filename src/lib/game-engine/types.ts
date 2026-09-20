@@ -131,6 +131,7 @@ export interface TargetCardChoice {
 export type ActionEffectType =
   | 'bang'
   | 'missed'
+  | 'hit'
   | 'beer'
   | 'gatling'
   | 'indians'

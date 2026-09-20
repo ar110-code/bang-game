@@ -1,6 +1,28 @@
-import { GameState, Player, Card, PendingReaction, Role } from './types';
+import { GameState, Player, Card, PendingReaction, Role, ActionEffectType } from './types';
 import { drawCards, performDrawTest } from './deck';
 import { canShootTarget, calculateEffectiveDistance } from './distance';
+
+export function triggerEffect(
+  state: GameState,
+  type: ActionEffectType,
+  sourcePlayerId?: string,
+  targetPlayerId?: string,
+  cardName?: string
+) {
+  const source = sourcePlayerId ? state.players.find((p) => p.id === sourcePlayerId) : undefined;
+  const target = targetPlayerId ? state.players.find((p) => p.id === targetPlayerId) : undefined;
+
+  state.lastEffect = {
+    id: `eff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    type,
+    sourcePlayerId,
+    targetPlayerId,
+    sourcePlayerName: source?.name,
+    targetPlayerName: target?.name,
+    cardName,
+    timestamp: Date.now(),
+  };
+}
 
 export function addLog(
   state: GameState,
@@ -140,6 +162,7 @@ export function damagePlayer(
 
   target.currentHp -= amount;
   addLog(state, `💥 ${target.name} ${amount} جان از دست داد! (جان باقیمانده: ${target.currentHp})`, 'attack');
+  triggerEffect(state, 'hit', attackerId, targetId);
 
   // Bart Cassidy ability: draw card on damage
   if (target.character?.name === 'bart_cassidy' && target.currentHp > 0) {
