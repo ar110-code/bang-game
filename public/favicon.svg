@@ -1,0 +1,84 @@
+<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brandGoldLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#fef08a" />
+      <stop offset="35%" stopColor="#f59e0b" />
+      <stop offset="70%" stopColor="#d97706" />
+      <stop offset="100%" stopColor="#78350f" />
+    </linearGradient>
+    <linearGradient id="brandGoldDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#b45309" />
+      <stop offset="50%" stopColor="#78350f" />
+      <stop offset="100%" stopColor="#451a03" />
+    </linearGradient>
+    <linearGradient id="brandSteel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#e2e8f0" />
+      <stop offset="50%" stopColor="#94a3b8" />
+      <stop offset="100%" stopColor="#475569" />
+    </linearGradient>
+    <radialGradient id="brandShieldBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#29180f" />
+      <stop offset="75%" stopColor="#180e08" />
+      <stop offset="100%" stopColor="#0a0503" />
+    </radialGradient>
+    <radialGradient id="brandStarGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.4" />
+      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Outer Squircle Medallion Base -->
+  <rect x="4" y="4" width="112" height="112" rx="30" fill="url(#brandShieldBg)" stroke="url(#brandGoldLight)" strokeWidth="3" />
+
+  <!-- Corner Rivets -->
+  <circle cx="16" cy="16" r="2.5" fill="#f59e0b" />
+  <circle cx="104" cy="16" r="2.5" fill="#f59e0b" />
+  <circle cx="16" cy="104" r="2.5" fill="#f59e0b" />
+  <circle cx="104" cy="104" r="2.5" fill="#f59e0b" />
+
+  <!-- Dashed Orbit Ring -->
+  <circle cx="60" cy="60" r="48" stroke="#b45309" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.65" />
+
+  <!-- Crossed Revolvers -->
+  <g transform="translate(60,60) rotate(-45) translate(-60,-60)" opacity="0.85">
+    <rect x="58" y="24" width="4" height="28" rx="1" fill="url(#brandSteel)" />
+    <rect x="56" y="50" width="8" height="12" rx="2" fill="url(#brandGoldLight)" />
+    <path d="M57 62 C57 62, 54 74, 48 80 C46 82, 52 84, 56 81 C60 77, 62 64, 62 62 Z" fill="#78350f" />
+  </g>
+  <g transform="translate(60,60) rotate(45) translate(-60,-60)" opacity="0.85">
+    <rect x="58" y="24" width="4" height="28" rx="1" fill="url(#brandSteel)" />
+    <rect x="56" y="50" width="8" height="12" rx="2" fill="url(#brandGoldLight)" />
+    <path d="M63 62 C63 62, 66 74, 72 80 C74 82, 68 84, 64 81 C60 77, 58 64, 58 62 Z" fill="#78350f" />
+  </g>
+
+  <!-- Radial Glow -->
+  <circle cx="60" cy="60" r="36" fill="url(#brandStarGlow)" />
+
+  <!-- 6-Point Sheriff Star with 3D Facets -->
+  <polygon points="60,18 60,60 51,46" fill="url(#brandGoldLight)" />
+  <polygon points="60,18 69,46 60,60" fill="url(#brandGoldDark)" />
+  <polygon points="96,39 60,60 69,46" fill="url(#brandGoldLight)" />
+  <polygon points="96,39 77,69 60,60" fill="url(#brandGoldDark)" />
+  <polygon points="96,81 60,60 77,69" fill="url(#brandGoldLight)" />
+  <polygon points="96,81 60,74 60,60" fill="url(#brandGoldDark)" />
+  <polygon points="60,102 60,60 60,74" fill="url(#brandGoldLight)" />
+  <polygon points="60,102 43,69 60,60" fill="url(#brandGoldDark)" />
+  <polygon points="24,81 60,60 43,69" fill="url(#brandGoldLight)" />
+  <polygon points="24,81 51,46 60,60" fill="url(#brandGoldDark)" />
+  <polygon points="24,39 60,60 51,46" fill="url(#brandGoldDark)" />
+  <polygon points="24,39 60,18 60,60" fill="url(#brandGoldLight)" />
+
+  <!-- Sheriff Star Ball Tips -->
+  <circle cx="60" cy="18" r="3.5" fill="#fef08a" stroke="#78350f" strokeWidth="1" />
+  <circle cx="96" cy="39" r="3.5" fill="#fef08a" stroke="#78350f" strokeWidth="1" />
+  <circle cx="96" cy="81" r="3.5" fill="#fef08a" stroke="#78350f" strokeWidth="1" />
+  <circle cx="60" cy="102" r="3.5" fill="#fef08a" stroke="#78350f" strokeWidth="1" />
+  <circle cx="24" cy="81" r="3.5" fill="#fef08a" stroke="#78350f" strokeWidth="1" />
+  <circle cx="24" cy="39" r="3.5" fill="#fef08a" stroke="#78350f" strokeWidth="1" />
+
+  <!-- Center Medallion Boss -->
+  <circle cx="60" cy="60" r="16" fill="url(#brandGoldDark)" stroke="#fde047" strokeWidth="1.5" />
+  <circle cx="60" cy="60" r="13" fill="#180e08" stroke="#f59e0b" strokeWidth="1" />
+  <circle cx="60" cy="60" r="6" fill="url(#brandGoldLight)" />
+  <circle cx="60" cy="60" r="3" fill="#451a03" />
+</svg>
