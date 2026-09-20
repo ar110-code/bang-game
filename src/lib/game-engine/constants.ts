@@ -122,7 +122,7 @@ export const ROLE_DISTRIBUTION: Record<number, Role[]> = {
   7: ['sheriff', 'renegade', 'outlaw', 'outlaw', 'outlaw', 'deputy', 'deputy'],
 };
 
-// 80 Card Deck blueprint
+// 78 Card Deck blueprint
 interface CardTemplate {
   name: CardName;
   titleFa: string;
@@ -185,10 +185,6 @@ export const BASE_CARDS_BLUEPRINT: CardTemplate[] = [
 
   // 1x SALOON (کافه)
   { name: 'saloon', titleFa: 'کافه', descFa: 'افزایش ۱ جان به تمام بازیکنان زنده در بازی', border: 'brown', suit: 'hearts', rank: '5' },
-
-  // 2x STAGECOACH
-  { name: 'stagecoach', titleFa: 'دلیجان', descFa: 'کشیدن فوری ۲ کارت از مخزن', border: 'brown', suit: 'spades', rank: '9' },
-  { name: 'stagecoach', titleFa: 'دلیجان', descFa: 'کشیدن فوری ۲ کارت از مخزن', border: 'brown', suit: 'spades', rank: '9' },
 
   // 1x WELLS FARGO
   { name: 'wells_fargo', titleFa: 'ولز فارگو', descFa: 'کشیدن فوری ۳ کارت از مخزن', border: 'brown', suit: 'hearts', rank: '3' },

@@ -18,19 +18,30 @@ export function createDeck(): Card[] {
   return shuffle(deck);
 }
 
+export function replenishDeck(state: GameState): void {
+  // Re-shuffle the exact 78 cards back into the draw deck
+  state.deck = createDeck();
+  if (state.discardPile.length > 1) {
+    // Preserve the top card in discard pile for Pedro Ramirez and table UI display
+    const top = state.discardPile[state.discardPile.length - 1];
+    state.discardPile = [top];
+  }
+  if (state.logs) {
+    state.logs.push({
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      text: `🃏 دسته‌ی کارت‌های مخزن به پایان رسید؛ مجدداً تمام ۷۸ کارت بر زده شد و در مخزن قرار گرفت.`,
+      type: 'system',
+      timestamp: Date.now(),
+    });
+  }
+}
+
 export function drawCards(state: GameState, count: number): Card[] {
   const drawn: Card[] = [];
 
   for (let i = 0; i < count; i++) {
     if (state.deck.length === 0) {
-      if (state.discardPile.length === 0) {
-        // No cards left anywhere
-        break;
-      }
-      // Reshuffle discard pile into deck, preserving top discard if wanted or reshuffle all
-      const reshuffled = shuffle([...state.discardPile]);
-      state.deck = reshuffled;
-      state.discardPile = [];
+      replenishDeck(state);
     }
 
     const card = state.deck.pop();
@@ -59,8 +70,7 @@ export function performDrawTest(
 ): DrawTestResult {
   const drawOne = () => {
     if (state.deck.length === 0) {
-      state.deck = shuffle([...state.discardPile]);
-      state.discardPile = [];
+      replenishDeck(state);
     }
     return state.deck.pop() || {
       id: `fallback_draw_${Date.now()}`,
