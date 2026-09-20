@@ -175,13 +175,13 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
         )}
 
         {/* Top Header & Announcement Banner */}
-        <div className="text-center mb-4 sm:mb-6">
+        <div className="text-center mb-4 sm:mb-6" dir="rtl">
           {status === 'aiming' && (
             <div className="inline-flex flex-col items-center gap-1 animate-in zoom-in-95 duration-200">
               <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-900/90 via-amber-900/90 to-red-900/90 border border-red-500/60 shadow-lg shadow-red-950/50">
-                <span className="text-base sm:text-xl animate-pulse">🔫</span>
+                <span className="text-base sm:text-xl animate-pulse">💥</span>
                 <span className="text-xs sm:text-sm font-black text-amber-200 font-western tracking-wide">
-                  دوئل شلیک بنگ! (BANG!)
+                  شلیک بنگ! (BANG!)
                 </span>
                 <span className="text-base sm:text-xl animate-pulse">🎯</span>
               </div>
@@ -226,10 +226,11 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
           )}
         </div>
 
-        {/* 3. The Standoff Arena: Shooter Card vs Defender Card */}
-        <div className="w-full flex items-center justify-between sm:justify-center gap-2 sm:gap-8 px-2">
-          {/* ================= RIGHT DUELIST: SHOOTER (شلیک‌کننده) ================= */}
-          <div className="flex flex-col items-center relative group w-36 sm:w-48 shrink-0">
+        {/* 3. The Standoff Arena: Shooter on LEFT, Bullet in Center, Defender on RIGHT (dir="ltr") */}
+        <div className="w-full flex items-center justify-between sm:justify-center gap-2 sm:gap-8 px-2" dir="ltr">
+          
+          {/* ================= LEFT DUELIST: SHOOTER (شلیک‌کننده سمت چپ) ================= */}
+          <div className="flex flex-col items-center relative group w-36 sm:w-48 shrink-0" dir="rtl">
             {/* Shooter Tag */}
             <div className="mb-2 px-2.5 py-0.5 rounded-md bg-amber-600/90 text-stone-950 font-black text-[10px] sm:text-xs tracking-wider shadow-md flex items-center gap-1">
               <span>🎯</span>
@@ -240,7 +241,7 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
             <div
               className={`relative w-full rounded-2xl overflow-hidden border-2 transition-all duration-300 shadow-2xl bg-saloon-950 ${
                 status === 'aiming'
-                  ? 'border-amber-500 shadow-amber-500/30'
+                  ? 'border-amber-500 shadow-amber-500/30 ring-1 ring-amber-400/50'
                   : 'border-zinc-700'
               }`}
             >
@@ -292,55 +293,53 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
                   maxHp={shooter.maxHp}
                   size="sm"
                 />
-                <span className="text-[9px] text-zinc-400 font-semibold">
-                  جان: {shooter.currentHp} از {shooter.maxHp}
+                <span className="text-[10px] sm:text-xs text-amber-200/90 font-bold">
+                  {shooter.currentHp} از {shooter.maxHp} جان
                 </span>
               </div>
             </div>
 
-            {/* Revolver / Gun Graphic Pointing toward Defender */}
-            <div className="absolute -left-5 sm:-left-8 top-20 sm:top-24 z-20 pointer-events-none transform scale-x-[-1]">
+            {/* Revolver / Gun Graphic extending from the RIGHT of the card pointing toward Defender */}
+            <div className="absolute -right-5 sm:-right-8 top-20 sm:top-24 z-20 pointer-events-none">
               <div className="relative">
                 <svg
                   viewBox="0 0 100 60"
                   className="w-14 sm:w-20 h-9 sm:h-12 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
                 >
-                  {/* Gun Barrel */}
-                  <rect x="15" y="18" width="55" height="12" rx="2" fill="#2d3748" stroke="#1a202c" strokeWidth="2" />
-                  <rect x="68" y="16" width="6" height="16" rx="1" fill="#4a5568" />
-                  {/* Cylinder */}
-                  <circle cx="28" cy="24" r="14" fill="#4a5568" stroke="#1a202c" strokeWidth="2" />
-                  <circle cx="28" cy="24" r="4" fill="#a0aec0" />
                   {/* Handle */}
                   <path d="M12 28 Q4 42 16 56 Q28 58 26 44 Q25 34 20 28 Z" fill="#78350f" stroke="#451a03" strokeWidth="2" />
                   {/* Trigger */}
                   <path d="M22 34 Q28 36 26 42" stroke="#cbd5e0" strokeWidth="2" fill="none" />
+                  {/* Cylinder */}
+                  <circle cx="28" cy="24" r="14" fill="#4a5568" stroke="#1a202c" strokeWidth="2" />
+                  <circle cx="28" cy="24" r="4" fill="#a0aec0" />
+                  {/* Gun Barrel extending to the right */}
+                  <rect x="28" y="18" width="55" height="12" rx="2" fill="#2d3748" stroke="#1a202c" strokeWidth="2" />
+                  <rect x="83" y="16" width="6" height="16" rx="1" fill="#4a5568" />
                 </svg>
 
                 {/* Muzzle Flash if Shooting */}
                 {status === 'aiming' && (
-                  <div className="absolute -right-3 top-1 w-6 h-6 rounded-full bg-amber-400/80 blur-xs animate-ping" />
+                  <div className="absolute right-0 top-3 w-5 h-5 rounded-full bg-amber-400/90 blur-xs animate-ping" />
                 )}
               </div>
             </div>
           </div>
 
-          {/* ================= CENTER: BULLET TRAJECTORY & VS BADGE ================= */}
+          {/* ================= CENTER: BULLET TRAJECTORY (نماد تیر که یکبار پرواز می‌کند) ================= */}
           <div className="flex-1 flex flex-col items-center justify-center relative min-w-[70px] sm:min-w-[150px] px-1 sm:px-4">
-            {/* VS Badge */}
-            <div className="mb-3 px-2 py-0.5 rounded-full bg-saloon-900 border border-amber-600/40 text-amber-400 text-[9px] sm:text-xs font-black tracking-widest uppercase shadow-md">
-              دوئل
-            </div>
-
+            
             {/* Trajectory flight lane */}
-            <div className="relative w-full h-10 flex items-center justify-center overflow-visible">
+            <div className="relative w-full h-12 flex items-center justify-center overflow-visible">
               {/* Laser / Bullet Trail Guide Line */}
-              <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-amber-500/80 via-red-500/60 to-zinc-600/40 border-t border-dashed border-amber-400/50" />
+              <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-amber-500/80 via-red-500/60 to-amber-500/40 border-t border-dashed border-amber-400/50" />
 
-              {/* Dynamic Flying Bullet */}
+              {/* Dynamic Flying Bullet - Travels ONCE from Left to Right and holds at target */}
               {status === 'aiming' && (
                 <div className="absolute z-30 flex items-center animate-western-bullet">
-                  {/* Brass Bullet SVG */}
+                  {/* Fire & Smoke Tail */}
+                  <span className="text-xs sm:text-sm -mr-1 animate-pulse select-none">🔥</span>
+                  {/* Brass Bullet SVG pointing right */}
                   <svg viewBox="0 0 40 18" className="w-8 sm:w-12 h-4 sm:h-6 drop-shadow-md">
                     <defs>
                       <linearGradient id="bulletGold" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -356,51 +355,46 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
                       strokeWidth="1"
                     />
                   </svg>
-                  {/* Fire & Smoke Tail */}
-                  <span className="text-xs sm:text-sm -mr-1 animate-pulse">🔥</span>
                 </div>
               )}
 
-              {/* Deflection Clang / Sparks */}
+              {/* Deflection Clang / Sparks on the right near defender */}
               {status === 'defended' && (
-                <div className="absolute right-3 sm:right-6 flex flex-col items-center animate-in zoom-in-75 duration-150">
+                <div className="absolute right-2 sm:right-6 flex flex-col items-center animate-in zoom-in-75 duration-150 z-30" dir="rtl">
                   <span className="text-2xl sm:text-4xl animate-spin">✨</span>
-                  <span className="text-[10px] sm:text-xs font-black text-amber-300 bg-black/80 px-2 py-0.5 rounded-md border border-amber-500 mt-1">
+                  <span className="text-[10px] sm:text-xs font-black text-amber-300 bg-black/80 px-2 py-0.5 rounded-md border border-amber-500 mt-1 shadow">
                     کمانه! 🛡️
                   </span>
                 </div>
               )}
 
-              {/* Hit Explosion Burst */}
+              {/* Hit Explosion Burst on the right near defender */}
               {status === 'hit' && (
-                <div className="absolute right-2 sm:right-4 flex flex-col items-center animate-in zoom-in duration-100">
+                <div className="absolute right-2 sm:right-6 flex flex-col items-center animate-in zoom-in duration-100 z-30">
                   <span className="text-3xl sm:text-5xl animate-ping">💥</span>
                 </div>
               )}
             </div>
 
-            {/* Distance or Slab Killer Indicator */}
-            <div className="mt-3 text-center">
-              {pendingReaction?.missedNeeded && pendingReaction.missedNeeded > 1 ? (
+            {/* Slab the Killer Indicator if applicable */}
+            {pendingReaction?.missedNeeded && pendingReaction.missedNeeded > 1 ? (
+              <div className="mt-2 text-center" dir="rtl">
                 <div className="bg-red-950/90 border border-red-600/70 text-red-200 text-[10px] sm:text-xs px-2.5 py-1 rounded-xl font-bold shadow-md">
                   ⚠️ شلیک اسلبِ قاتل
                   <div className="text-amber-300 font-black mt-0.5">
                     ({pendingReaction.missedPlayed} از {pendingReaction.missedNeeded} دفاع شده)
                   </div>
                 </div>
-              ) : (
-                <span className="text-[10px] sm:text-xs font-semibold text-zinc-400 bg-zinc-900/80 px-2 py-0.5 rounded-full border border-zinc-800">
-                  تیر در حرکت...
-                </span>
-              )}
-            </div>
+              </div>
+            ) : null}
           </div>
 
-          {/* ================= LEFT DUELIST: DEFENDER (مدافع) ================= */}
+          {/* ================= RIGHT DUELIST: DEFENDER (مدافع سمت راست) ================= */}
           <div
             className={`flex flex-col items-center relative group w-36 sm:w-48 shrink-0 ${
               status === 'hit' ? 'animate-western-shake' : ''
             }`}
+            dir="rtl"
           >
             {/* Defender Tag */}
             <div className="mb-2 px-2.5 py-0.5 rounded-md bg-red-600/90 text-white font-black text-[10px] sm:text-xs tracking-wider shadow-md flex items-center gap-1">
@@ -490,8 +484,8 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
                   maxHp={defender.maxHp}
                   size="sm"
                 />
-                <span className="text-[9px] text-zinc-400 font-semibold">
-                  جان: {defender.currentHp} از {defender.maxHp}
+                <span className="text-[10px] sm:text-xs text-amber-200/90 font-bold">
+                  {defender.currentHp} از {defender.maxHp} جان
                 </span>
               </div>
             </div>
@@ -500,7 +494,7 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
 
         {/* 4. DEFENDER INTERACTIVE ACTION BAR (Only shown when reaction is active) */}
         {isBangPending && (
-          <div className="mt-5 w-full max-w-xl bg-saloon-900/95 border-2 border-amber-600/80 rounded-2xl p-3.5 sm:p-4 shadow-2xl animate-in slide-in-from-bottom-3 duration-200 text-center">
+          <div className="mt-5 w-full max-w-xl bg-saloon-900/95 border-2 border-amber-600/80 rounded-2xl p-3.5 sm:p-4 shadow-2xl animate-in slide-in-from-bottom-3 duration-200 text-center" dir="rtl">
             {isMeDefender ? (
               <div>
                 <div className="flex items-center justify-center gap-2 mb-2 text-xs sm:text-sm font-bold text-amber-200">
@@ -584,21 +578,24 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
 
       {/* Scoped CSS Keyframe Motion Animations */}
       <style jsx>{`
-        @keyframes westernBulletFlight {
+        @keyframes westernBulletFlightOnce {
           0% {
-            left: 5%;
-            transform: scale(0.9);
-            opacity: 0.9;
+            left: 4%;
+            opacity: 0;
+            transform: scale(0.7);
           }
-          50% {
-            left: 55%;
-            transform: scale(1.1);
+          15% {
             opacity: 1;
+            transform: scale(1.1);
+          }
+          85% {
+            opacity: 1;
+            transform: scale(1);
           }
           100% {
-            left: 88%;
-            transform: scale(1);
+            left: 84%;
             opacity: 1;
+            transform: scale(1);
           }
         }
 
@@ -621,7 +618,7 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
         }
 
         .animate-western-bullet {
-          animation: westernBulletFlight 0.6s cubic-bezier(0.25, 1, 0.5, 1) infinite alternate;
+          animation: westernBulletFlightOnce 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .animate-western-shake {
