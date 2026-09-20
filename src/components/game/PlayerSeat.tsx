@@ -252,15 +252,46 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
       )}
 
       {/* Bottom Section: Equipped Blue Cards & Equipment */}
-      <div className="flex flex-wrap gap-0.5 sm:gap-1 items-center justify-center mt-1 w-full min-h-[14px]">
+      <div className="flex flex-wrap gap-0.5 sm:gap-1 items-center justify-center mt-1 w-full min-h-[16px]">
+        {/* WEAPON: High visibility with name and range */}
         {player.equipment.weapon && (
+          player.equipment.weapon.name === 'volcanic' ? (
+            <span
+              className="bg-gradient-to-r from-red-700 via-amber-600 to-red-700 text-white border border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.6)] px-1 sm:px-1.5 py-0.5 rounded text-[7px] sm:text-[9px] font-black flex items-center gap-0.5 animate-pulse"
+              title="سلاح ولکانو: شلیک نامحدود بنگ در نوبت (برد ۱)"
+            >
+              <span>⚡</span>
+              <span>ولکانو</span>
+              <span className="bg-black/40 px-0.5 rounded text-[6px] sm:text-[8px]">نامحدود</span>
+            </span>
+          ) : (
+            <span
+              className="bg-gradient-to-r from-amber-950 via-saloon-900 to-amber-950 text-amber-200 border border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.35)] px-1 sm:px-1.5 py-0.5 rounded text-[7px] sm:text-[9px] font-black flex items-center gap-0.5"
+              title={`اسلحه ${player.equipment.weapon.titleFa}: برد شلیک ${player.equipment.weapon.range} فرسنگ`}
+            >
+              <span>🔫</span>
+              <span className="truncate max-w-[45px] sm:max-w-none">{player.equipment.weapon.titleFa}</span>
+              <span className="bg-amber-400 text-saloon-950 px-1 rounded-sm text-[6px] sm:text-[8px] font-black shrink-0">
+                برد {player.equipment.weapon.range}
+              </span>
+            </span>
+          )
+        )}
+
+        {/* BARREL: High visibility glowing cyan shield */}
+        {player.equipment.barrel && (
           <span
-            className="bg-blue-900/90 text-blue-200 border border-blue-600/70 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold"
-            title={`اسلحه: ${player.equipment.weapon.titleFa} (برد ${player.equipment.weapon.range})`}
+            className="bg-gradient-to-r from-sky-950 via-blue-900 to-sky-950 text-sky-200 border-2 border-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.55)] px-1 sm:px-1.5 py-0.5 rounded text-[7px] sm:text-[9px] font-black flex items-center gap-0.5 ring-1 ring-sky-400/40"
+            title="بشکه دفاعی: هر بار که هدف بنگ قرار گیرد، اگر کارت رو شده دل باشد تیر بی‌اثر می‌شود!"
           >
-            🔫 برد {player.equipment.weapon.range}
+            <span className="text-sky-300">🛡️</span>
+            <span>بشکه</span>
+            <span className="bg-sky-500 text-white px-1 rounded-sm text-[6px] sm:text-[8px] font-black shrink-0">
+              تست دل ♥
+            </span>
           </span>
         )}
+
         {player.equipment.mustang && (
           <span
             className="bg-amber-900/90 text-amber-200 border border-amber-600/70 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold"
@@ -277,20 +308,12 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
             🔍 آپالوزا
           </span>
         )}
-        {player.equipment.barrel && (
-          <span
-            className="bg-stone-800/90 text-stone-200 border border-stone-600 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold"
-            title="بشکه دفاعی (شانس دل برای دفع شلیک)"
-          >
-            🛡️ بشکه
-          </span>
-        )}
         {player.equipment.jail && (
           <span
             className="bg-red-900/90 text-red-200 border border-red-600 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold animate-pulse"
             title="زندانی در هلفدونی"
           >
-            🔒 زندان
+            🔒 هلفدونی
           </span>
         )}
         {player.equipment.dynamite && (

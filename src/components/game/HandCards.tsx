@@ -226,9 +226,22 @@ export const HandCards: React.FC<HandCardsProps> = ({
                     ? 'کارت اکشن (یک‌بار مصرف)'
                     : 'کارت تجهیزات (روی میز می‌ماند)'}
                 </span>
-                {selectedCard.range && (
-                  <span className="bg-amber-400 text-saloon-950 px-1.5 py-0.2 rounded-md text-[9px] font-black">
-                    برد اسلحه: {selectedCard.range}
+                {selectedCard.name === 'volcanic' ? (
+                  <span className="bg-gradient-to-r from-red-600 via-amber-500 to-red-600 text-white px-2 py-0.5 rounded-md text-[9px] font-black animate-pulse flex items-center gap-1 shadow">
+                    <span>⚡</span>
+                    <span>ولکانو: شلیک بنگ نامحدود در نوبت (برد ۱)</span>
+                  </span>
+                ) : selectedCard.range ? (
+                  <span className="bg-amber-400 text-saloon-950 px-2 py-0.5 rounded-md text-[9px] font-black flex items-center gap-1 shadow">
+                    <span>🔫</span>
+                    <span>اسلحه جنگی: برد شلیک {selectedCard.range} فرسنگ</span>
+                  </span>
+                ) : null}
+
+                {selectedCard.name === 'barrel' && (
+                  <span className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-2 py-0.5 rounded-md text-[9px] font-black flex items-center gap-1 shadow">
+                    <span>🛡️</span>
+                    <span>بشکه دفاعی: شانس دفع بنگ با کارت دل ♥</span>
                   </span>
                 )}
               </div>

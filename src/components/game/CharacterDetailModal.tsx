@@ -184,30 +184,37 @@ export const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
           </div>
           <div className="flex flex-wrap gap-1.5">
             {player.equipment.weapon && (
-              <span className="bg-blue-900/60 text-blue-200 border border-blue-600/70 px-2 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
-                <span>🔫</span>
-                <span>
-                  {player.equipment.weapon.titleFa} (برد {player.equipment.weapon.range})
-                </span>
-              </span>
-            )}
-            {player.equipment.mustang && (
-              <span className="bg-amber-900/60 text-amber-200 border border-amber-600/70 px-2 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
-                <span>🐎</span>
-                <span>اسب موستانگ (+۱ فاصله دفاعی)</span>
-              </span>
-            )}
-            {player.equipment.appaloosa && (
-              <span className="bg-cyan-900/60 text-cyan-200 border border-cyan-600/70 px-2 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
-                <span>🔍</span>
-                <span>اسب آپالوزا (-۱ فاصله دید حمله)</span>
-              </span>
+              <div className="bg-gradient-to-r from-amber-950/90 via-saloon-900 to-amber-950/90 text-amber-200 border-2 border-amber-400/90 shadow-md px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center justify-between gap-2 w-full">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base">🔫</span>
+                  <span className="font-black text-amber-300">
+                    اسلحه: {player.equipment.weapon.titleFa}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="bg-amber-400 text-saloon-950 px-1.5 py-0.5 rounded text-[10px] font-black">
+                    برد شلیک: {player.equipment.weapon.range} فرسنگ
+                  </span>
+                  {player.equipment.weapon.name === 'volcanic' && (
+                    <span className="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-black animate-pulse">
+                      ⚡ تیر نامحدود
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
             {player.equipment.barrel && (
-              <span className="bg-stone-800/80 text-stone-200 border border-stone-600 px-2 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
-                <span>🛡️</span>
-                <span>بشکه دفاعی (تست کارت زپلشک!)</span>
-              </span>
+              <div className="bg-gradient-to-r from-sky-950/90 via-blue-900 to-sky-950/90 text-sky-200 border-2 border-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.4)] px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center justify-between gap-2 w-full ring-1 ring-sky-300/40">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base text-sky-300">🛡️</span>
+                  <span className="font-black text-sky-200">
+                    بشکه دفاعی (Barrel)
+                  </span>
+                </div>
+                <span className="bg-sky-500 text-white px-2 py-0.5 rounded text-[10px] font-black shadow">
+                  تست شانس دل ♥ (دفاع خودکار در برابر بنگ)
+                </span>
+              </div>
             )}
             {player.equipment.jail && (
               <span className="bg-red-950/80 text-red-300 border border-red-700 px-2 py-1 rounded-xl text-xs font-bold animate-pulse flex items-center gap-1">
