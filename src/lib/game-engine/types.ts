@@ -138,7 +138,11 @@ export type ActionEffectType =
   | 'dynamite_explode'
   | 'barrel_success'
   | 'cat_balou'
-  | 'panic';
+  | 'panic'
+  | 'jail'
+  | 'general_store'
+  | 'saloon'
+  | 'stagecoach';
 
 export interface ActionEffect {
   id: string;

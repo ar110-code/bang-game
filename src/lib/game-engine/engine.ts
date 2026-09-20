@@ -493,7 +493,7 @@ function executePlayCard(
         }
       });
       addLog(state, `🍻 ${player.name} همه را در سالون به یک دور نوشیدنی مهمان کرد! (+۱ جان به همه)`, 'heal');
-      triggerEffect(state, 'beer', playerId, undefined, 'saloon');
+      triggerEffect(state, 'saloon', playerId, undefined, 'saloon');
       return { success: true };
     }
 
@@ -503,6 +503,7 @@ function executePlayCard(
       const drawn = drawCards(state, 2);
       player.hand.push(...drawn);
       checkAndAutoEquipDynamite(state, player);
+      triggerEffect(state, 'stagecoach', playerId, undefined, 'stagecoach');
       addLog(state, `🐴 دلیجان به شهر رسید و ۲ کارت جدید به ${player.name} تحویل داد.`, 'system');
       return { success: true };
     }
@@ -513,6 +514,7 @@ function executePlayCard(
       const drawn = drawCards(state, 3);
       player.hand.push(...drawn);
       checkAndAutoEquipDynamite(state, player);
+      triggerEffect(state, 'stagecoach', playerId, undefined, 'wells_fargo');
       addLog(state, `🚂 محموله ولز فارگو رسید! ۳ کارت به دست ${player.name} اضافه شد.`, 'system');
       return { success: true };
     }
@@ -532,6 +534,7 @@ function executePlayCard(
       }
 
       const drawnStoreCards = drawCards(state, livingPlayers.length);
+      triggerEffect(state, 'general_store', playerId, undefined, 'general_store');
       addLog(
         state,
         `🏪 ${player.name} کارت فروشگاه را باز کرد! ${drawnStoreCards.length} کارت روی میز قرار گرفت تا بازیکنان به نوبت یکی را انتخاب کنند.`,
@@ -796,6 +799,7 @@ function executePlayCard(
         return { success: false, message: 'این بازیکن در حال حاضر در زندان است!' };
       }
       target.equipment.jail = card;
+      triggerEffect(state, 'jail', playerId, targetPlayerId, 'jail');
       addLog(state, `🔒 دستبند قانون! ${player.name}، ${target.name} را پشت میله‌های زندان انداخت!`, 'equip');
       return { success: true };
     }

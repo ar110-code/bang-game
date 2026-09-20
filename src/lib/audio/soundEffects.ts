@@ -492,6 +492,153 @@ class SoundEngine {
   public playHeal(volume?: number): void {
     this.playBeerDrink(volume);
   }
+
+  /**
+   * 🔒 Jail Iron Bars Slam & Padlock Snap (هلفدونی)
+   */
+  public playJailDoor(volume: number = 0.85): void {
+    if (this.muted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const t = ctx.currentTime;
+
+    // 1. Heavy iron gate slam (Sub bass thud)
+    const thud = ctx.createOscillator();
+    const thudGain = ctx.createGain();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(140, t);
+    thud.frequency.exponentialRampToValueAtTime(35, t + 0.25);
+    thudGain.gain.setValueAtTime(0.8 * volume, t);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    thud.connect(thudGain);
+    thudGain.connect(ctx.destination);
+    thud.start(t);
+    thud.stop(t + 0.3);
+
+    // 2. Metallic clang of iron bars (harmonic ring)
+    [320, 580, 890, 1420].forEach((freq) => {
+      const metalOsc = ctx.createOscillator();
+      const metalGain = ctx.createGain();
+      metalOsc.type = 'sawtooth';
+      metalOsc.frequency.setValueAtTime(freq, t + 0.02);
+      metalGain.gain.setValueAtTime(0.25 * volume, t + 0.02);
+      metalGain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(freq, t);
+      filter.Q.setValueAtTime(6.0, t);
+
+      metalOsc.connect(filter);
+      filter.connect(metalGain);
+      metalGain.connect(ctx.destination);
+      metalOsc.start(t + 0.02);
+      metalOsc.stop(t + 0.35);
+    });
+
+    // 3. Heavy Padlock Click & Lock (at +0.22s)
+    const lockOsc = ctx.createOscillator();
+    const lockGain = ctx.createGain();
+    lockOsc.type = 'triangle';
+    lockOsc.frequency.setValueAtTime(2400, t + 0.22);
+    lockOsc.frequency.exponentialRampToValueAtTime(600, t + 0.27);
+    lockGain.gain.setValueAtTime(0.6 * volume, t + 0.22);
+    lockGain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+    lockOsc.connect(lockGain);
+    lockGain.connect(ctx.destination);
+    lockOsc.start(t + 0.22);
+    lockOsc.stop(t + 0.32);
+  }
+
+  /**
+   * 🐴 Stagecoach Gallop (دلیجان و ولز فارگو)
+   */
+  public playStagecoach(volume: number = 0.75): void {
+    if (this.muted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const t = ctx.currentTime;
+
+    // 4 quick galloping hoof beats (clop-clop clop-clop)
+    [0, 0.09, 0.22, 0.31].forEach((delay, idx) => {
+      const hoofOsc = ctx.createOscillator();
+      const hoofGain = ctx.createGain();
+      hoofOsc.type = 'triangle';
+      hoofOsc.frequency.setValueAtTime(idx % 2 === 0 ? 300 : 230, t + delay);
+      hoofOsc.frequency.exponentialRampToValueAtTime(70, t + delay + 0.06);
+      hoofGain.gain.setValueAtTime(0.5 * volume, t + delay);
+      hoofGain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.07);
+      hoofOsc.connect(hoofGain);
+      hoofGain.connect(ctx.destination);
+      hoofOsc.start(t + delay);
+      hoofOsc.stop(t + delay + 0.07);
+    });
+
+    // Carriage wheel rumble
+    const wheelOsc = ctx.createOscillator();
+    const wheelGain = ctx.createGain();
+    wheelOsc.type = 'sawtooth';
+    wheelOsc.frequency.setValueAtTime(65, t);
+    wheelOsc.frequency.linearRampToValueAtTime(80, t + 0.4);
+    wheelGain.gain.setValueAtTime(0.3 * volume, t);
+    wheelGain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    wheelOsc.connect(wheelGain);
+    wheelGain.connect(ctx.destination);
+    wheelOsc.start(t);
+    wheelOsc.stop(t + 0.5);
+  }
+
+  /**
+   * 🏪 General Store Counter Bell (فروشگاه)
+   */
+  public playStoreBell(volume: number = 0.7): void {
+    if (this.muted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const t = ctx.currentTime;
+
+    // Dual brass bell ding
+    [1760, 2637].forEach((freq, idx) => {
+      const bell = ctx.createOscillator();
+      const bellGain = ctx.createGain();
+      bell.type = 'sine';
+      bell.frequency.setValueAtTime(freq, t + idx * 0.04);
+      bellGain.gain.setValueAtTime(0.5 * volume, t + idx * 0.04);
+      bellGain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.04 + 0.6);
+      bell.connect(bellGain);
+      bellGain.connect(ctx.destination);
+      bell.start(t + idx * 0.04);
+      bell.stop(t + idx * 0.04 + 0.6);
+    });
+  }
+
+  /**
+   * 🍻 Saloon Ragtime Piano & Cheers (کافه سالون)
+   */
+  public playSaloonPiano(volume: number = 0.75): void {
+    if (this.muted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const t = ctx.currentTime;
+    const chords = [523.25, 659.25, 783.99, 1046.5]; // C major chord roll
+
+    chords.forEach((note, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(note, t + idx * 0.06);
+      gain.gain.setValueAtTime(0.35 * volume, t + idx * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.06 + 0.45);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t + idx * 0.06);
+      osc.stop(t + idx * 0.06 + 0.45);
+    });
+  }
 }
 
 export const soundEngine = new SoundEngine();
