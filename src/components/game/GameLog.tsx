@@ -7,6 +7,10 @@ interface GameLogProps {
   myPlayerId?: string;
   onClose?: () => void;
   className?: string;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
+  onResizeStep?: (delta: number) => void;
+  currentWidth?: number;
 }
 
 export const GameLog: React.FC<GameLogProps> = ({
@@ -15,6 +19,10 @@ export const GameLog: React.FC<GameLogProps> = ({
   myPlayerId,
   onClose,
   className = '',
+  isCollapsed = false,
+  onToggleCollapse,
+  onResizeStep,
+  currentWidth,
 }) => {
   const [filterPlayerId, setFilterPlayerId] = useState<string>('all');
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -74,6 +82,40 @@ export const GameLog: React.FC<GameLogProps> = ({
     }
   };
 
+  if (isCollapsed) {
+    return (
+      <div
+        onClick={onToggleCollapse}
+        className={`bg-saloon-950/92 border border-saloon-800 hover:border-amber-500/70 rounded-3xl p-2 flex flex-col items-center justify-between shadow-2xl backdrop-blur-md cursor-pointer transition-all hover:bg-saloon-900 group ${
+          className || 'h-full min-h-[440px] max-h-[620px] w-12'
+        }`}
+        title="کلیک برای باز کردن وقایع‌نگار سالون"
+      >
+        <div className="flex flex-col items-center gap-3 pt-2">
+          <span className="text-lg group-hover:scale-110 transition-transform">📜</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse?.();
+            }}
+            className="w-6 h-6 rounded-full bg-saloon-800 hover:bg-amber-600 text-amber-300 hover:text-white flex items-center justify-center text-[10px] font-bold transition-all shadow"
+            title="باز کردن وقایع"
+          >
+            ▶
+          </button>
+          <span className="text-[10px] font-bold text-amber-400 [writing-mode:vertical-lr] tracking-widest my-2 select-none">
+            وقایع‌نگار
+          </span>
+        </div>
+        <div className="flex flex-col items-center pb-2">
+          <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-600/50 px-1.5 py-0.5 rounded-full font-mono font-bold">
+            {filteredLogs.length}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`bg-saloon-950/92 border border-saloon-800 rounded-3xl p-3 sm:p-4 flex flex-col shadow-2xl backdrop-blur-md select-none ${
@@ -85,19 +127,50 @@ export const GameLog: React.FC<GameLogProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-base">📜</span>
-            <span className="text-xs sm:text-sm font-black text-amber-300">
+            <span className="text-xs sm:text-sm font-black text-amber-300 truncate">
               وقایع‌نگار سالون
             </span>
-            <span className="text-[9px] bg-emerald-950/90 text-emerald-400 border border-emerald-700/60 px-2 py-0.2 rounded-full font-bold animate-pulse">
+            <span className="text-[9px] bg-emerald-950/90 text-emerald-400 border border-emerald-700/60 px-2 py-0.2 rounded-full font-bold animate-pulse hidden sm:inline">
               زنده
             </span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
+            {onResizeStep && (
+              <div className="hidden sm:flex items-center gap-0.5 bg-saloon-900 border border-saloon-800 rounded-lg p-0.5 mr-1">
+                <button
+                  type="button"
+                  onClick={() => onResizeStep(-40)}
+                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-saloon-800 text-zinc-400 hover:text-amber-300 text-xs font-bold transition-colors"
+                  title="کوچک‌تر کردن پنجره وقایع (-)"
+                >
+                  −
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onResizeStep(40)}
+                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-saloon-800 text-zinc-400 hover:text-amber-300 text-xs font-bold transition-colors"
+                  title="بزرگ‌تر کردن پنجره وقایع (+)"
+                >
+                  +
+                </button>
+              </div>
+            )}
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="w-6 h-6 rounded-lg bg-saloon-900 hover:bg-saloon-800 border border-saloon-700 text-zinc-400 hover:text-amber-300 flex items-center justify-center text-[10px] transition-colors"
+                title="جمع کردن وقایع‌نگار"
+              >
+                ◀
+              </button>
+            )}
             <span className="text-[10px] text-zinc-400 bg-saloon-900 border border-saloon-800 px-2 py-0.5 rounded-lg font-medium">
-              {filteredLogs.length} پیام
+              {filteredLogs.length}
             </span>
             {onClose && (
               <button
+                type="button"
                 onClick={onClose}
                 className="w-7 h-7 rounded-full bg-saloon-900 hover:bg-saloon-800 border border-saloon-700 text-zinc-400 hover:text-white flex items-center justify-center text-xs transition-colors"
                 title="بستن پنجره وقایع"

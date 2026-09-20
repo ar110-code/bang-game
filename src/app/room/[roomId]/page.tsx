@@ -54,6 +54,94 @@ export default function RoomPage() {
   // Mobile/Tablet Game Log modal toggle
   const [logModalOpen, setLogModalOpen] = useState(false);
 
+  // Desktop Game Log resizable width & collapse state
+  const [gameLogWidth, setGameLogWidth] = useState<number>(320);
+  const [isLogCollapsed, setIsLogCollapsed] = useState<boolean>(false);
+  const [tableZoomOffset, setTableZoomOffset] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isResizingRef = useRef<boolean>(false);
+
+  // Persist log width & collapse preferences
+  useEffect(() => {
+    try {
+      const savedWidth = localStorage.getItem('bang_log_width');
+      if (savedWidth) {
+        const w = parseInt(savedWidth, 10);
+        if (!isNaN(w) && w >= 160 && w <= 560) setGameLogWidth(w);
+      }
+      const savedCollapsed = localStorage.getItem('bang_log_collapsed');
+      if (savedCollapsed) {
+        setIsLogCollapsed(savedCollapsed === 'true');
+      }
+    } catch (e) {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bang_log_width', String(gameLogWidth));
+      localStorage.setItem('bang_log_collapsed', String(isLogCollapsed));
+    } catch (e) {}
+  }, [gameLogWidth, isLogCollapsed]);
+
+  // Compute table dynamic scale and max width class based on GameLog width and manual zoom
+  const baseTableScale = useMemo(() => {
+    if (isLogCollapsed) return 1.14;
+    if (gameLogWidth <= 240) return 1.08;
+    if (gameLogWidth <= 320) return 1.0;
+    if (gameLogWidth <= 420) return 0.92;
+    return 0.84;
+  }, [isLogCollapsed, gameLogWidth]);
+
+  const currentTableScale = Math.max(0.65, Math.min(1.4, baseTableScale + tableZoomOffset));
+
+  const tableMaxWidthClass = useMemo(() => {
+    if (isLogCollapsed) return 'max-w-7xl';
+    if (gameLogWidth <= 240) return 'max-w-6xl';
+    if (gameLogWidth <= 340) return 'max-w-5xl';
+    return 'max-w-4xl';
+  }, [isLogCollapsed, gameLogWidth]);
+
+  const currentCardSize: 'sm' | 'md' | 'lg' = useMemo(() => {
+    if (currentTableScale >= 1.08) return 'md';
+    if (currentTableScale <= 0.88) return 'sm';
+    return 'md';
+  }, [currentTableScale]);
+
+  const handleStartResize = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    isResizingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMove = (moveEvent: MouseEvent | TouchEvent) => {
+      if (!isResizingRef.current || !containerRef.current) return;
+      const clientX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
+      const rect = containerRef.current.getBoundingClientRect();
+      const isLogOnLeft = clientX - rect.left < rect.right - clientX;
+      const newWidth = isLogOnLeft
+        ? Math.max(160, Math.min(560, clientX - rect.left))
+        : Math.max(160, Math.min(560, rect.right - clientX));
+
+      setGameLogWidth(newWidth);
+      if (isLogCollapsed) setIsLogCollapsed(false);
+    };
+
+    const onEnd = () => {
+      isResizingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove);
+    window.addEventListener('touchend', onEnd);
+  };
+
   useEffect(() => {
     let storedId = sessionStorage.getItem('bang_player_id');
     if (!storedId) {
@@ -300,9 +388,6 @@ export default function RoomPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-saloon-950 text-saloon-100 relative selection:bg-amber-600">
-      {/* Animated Card Action Visuals & Procedural Western Audio Overlay */}
-      <ActionAnimationOverlay effect={activeEffect || gameState.lastEffect || null} />
-
       {/* Top Navigation Bar */}
       <header className="w-full bg-saloon-900/90 border-b border-saloon-800 px-4 py-2 flex items-center justify-between z-20 backdrop-blur-md">
         <div className="flex items-center gap-3">
@@ -383,23 +468,62 @@ export default function RoomPage() {
         </div>
       ) : (
         <div className="flex-1 flex flex-col justify-between overflow-y-auto">
-          {/* Western Table */}
-          <div className="flex-1 flex flex-col md:flex-row items-center justify-center relative">
-            <WesternTable
-              gameState={gameState}
-              myPlayerId={myPlayerId}
-              selectedCard={selectedCard}
-              onSelectTarget={handleSelectTarget}
-              onInspectPlayer={(p) => setInspectedPlayer(p)}
-              onInspectCard={(c) => setInspectedCard(c)}
-            />
+          {/* Western Table & Resizable Game Log Arena */}
+          <div
+            ref={containerRef}
+            className="flex-1 flex flex-col lg:flex-row items-center justify-center relative w-full overflow-hidden"
+          >
+            {/* Western Table with Dynamic Scale and centered Action Effects */}
+            <div className="flex-1 w-full h-full flex items-center justify-center relative overflow-hidden">
+              <WesternTable
+                gameState={gameState}
+                myPlayerId={myPlayerId}
+                selectedCard={selectedCard}
+                onSelectTarget={handleSelectTarget}
+                onInspectPlayer={(p) => setInspectedPlayer(p)}
+                onInspectCard={(c) => setInspectedCard(c)}
+                activeEffect={activeEffect}
+                tableScale={currentTableScale}
+                maxWidthClass={tableMaxWidthClass}
+                onZoomIn={() => setTableZoomOffset((prev) => Math.min(0.35, prev + 0.08))}
+                onZoomOut={() => setTableZoomOffset((prev) => Math.max(-0.35, prev - 0.08))}
+                onResetZoom={() => setTableZoomOffset(0)}
+              />
+            </div>
 
-            {/* Desktop Side Game Log with Player Filtering & Turn Dividers */}
-            <div className="hidden lg:block w-84 p-4 self-stretch">
+            {/* Desktop Draggable Divider Handle */}
+            <div
+              onMouseDown={handleStartResize}
+              onTouchStart={handleStartResize}
+              className="hidden lg:flex w-2.5 hover:w-3.5 hover:bg-amber-500/25 active:bg-amber-500/50 cursor-col-resize items-center justify-center group transition-all self-stretch select-none z-20 shrink-0"
+              title="برای تغییر اندازه وقایع‌نگار بکشید"
+            >
+              <div className="w-1 h-14 rounded-full bg-saloon-800 group-hover:bg-amber-400 group-active:bg-amber-300 transition-colors flex flex-col items-center justify-center gap-1">
+                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+              </div>
+            </div>
+
+            {/* Desktop Side Game Log with Dynamic Width & Collapse */}
+            <div
+              style={{
+                width: isLogCollapsed ? 48 : gameLogWidth,
+                transition: isResizingRef.current ? 'none' : 'width 0.2s ease-out',
+              }}
+              className="hidden lg:block p-2 sm:p-3 self-stretch shrink-0 overflow-hidden"
+            >
               <GameLog
                 logs={gameState.logs}
                 players={gameState.players}
                 myPlayerId={myPlayerId}
+                isCollapsed={isLogCollapsed}
+                onToggleCollapse={() => setIsLogCollapsed((prev) => !prev)}
+                onResizeStep={(delta) => {
+                  if (isLogCollapsed) setIsLogCollapsed(false);
+                  setGameLogWidth((prev) => Math.max(160, Math.min(560, prev + delta)));
+                }}
+                currentWidth={gameLogWidth}
               />
             </div>
           </div>
@@ -408,6 +532,7 @@ export default function RoomPage() {
           {myPlayer && !myPlayer.isEliminated && (
             <HandCards
               cards={myPlayer.hand}
+              cardSize={currentCardSize}
               selectedCardId={selectedCardId}
               isMyTurn={isMyTurn}
               turnPhase={gameState.turnPhase}

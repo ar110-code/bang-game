@@ -16,6 +16,7 @@ interface HandCardsProps {
   onEndTurn: () => void;
   onDiscardCard: (cardId: string) => void;
   onUseSidKetchum?: (cardIds: string[]) => void;
+  cardSize?: 'sm' | 'md' | 'lg';
 }
 
 export const HandCards: React.FC<HandCardsProps> = ({
@@ -32,6 +33,7 @@ export const HandCards: React.FC<HandCardsProps> = ({
   onEndTurn,
   onDiscardCard,
   onUseSidKetchum,
+  cardSize = 'md',
 }) => {
   const [isSidHealingMode, setIsSidHealingMode] = useState(false);
   const [sidSelectedCardIds, setSidSelectedCardIds] = useState<string[]>([]);
@@ -287,6 +289,7 @@ export const HandCards: React.FC<HandCardsProps> = ({
               <div key={card.id} className="flex-shrink-0">
                 <CardComponent
                   card={card}
+                  size={cardSize}
                   isSelected={isSelected}
                   isPlayable={isMyTurn || isDiscardPhase || isSidHealingMode}
                   onClick={() => {
@@ -303,7 +306,6 @@ export const HandCards: React.FC<HandCardsProps> = ({
                       }
                     }
                   }}
-                  size="md"
                 />
               </div>
             );

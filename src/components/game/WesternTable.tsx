@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { PublicGameState, PublicPlayer, Card } from '@/lib/game-engine/types';
+import { PublicGameState, PublicPlayer, Card, ActionEffect } from '@/lib/game-engine/types';
 import { PlayerSeat } from './PlayerSeat';
 import { CardComponent } from './CardComponent';
+import { ActionAnimationOverlay } from './ActionAnimationOverlay';
 import { canShootTarget, calculateEffectiveDistance } from '@/lib/game-engine/distance';
 
 interface WesternTableProps {
@@ -11,6 +12,12 @@ interface WesternTableProps {
   onSelectTarget: (targetPlayerId: string) => void;
   onInspectPlayer?: (player: PublicPlayer) => void;
   onInspectCard?: (card: Card) => void;
+  activeEffect?: ActionEffect | null;
+  tableScale?: number;
+  maxWidthClass?: string;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onResetZoom?: () => void;
 }
 
 export const WesternTable: React.FC<WesternTableProps> = ({
@@ -20,6 +27,12 @@ export const WesternTable: React.FC<WesternTableProps> = ({
   onSelectTarget,
   onInspectPlayer,
   onInspectCard,
+  activeEffect,
+  tableScale = 1,
+  maxWidthClass,
+  onZoomIn,
+  onZoomOut,
+  onResetZoom,
 }) => {
   const myPlayer = gameState.players.find((p) => p.id === myPlayerId);
 
@@ -91,9 +104,50 @@ export const WesternTable: React.FC<WesternTableProps> = ({
   const totalPlayers = orderedPlayers.length;
 
   return (
-    <div className="relative w-full flex-1 flex items-center justify-center py-3 sm:py-10 px-1 sm:px-6 min-h-[480px] sm:min-h-[660px]">
-      {/* Outer Table Arena Container */}
-      <div className="relative w-full max-w-5xl h-full min-h-[460px] sm:min-h-[600px] flex items-center justify-center">
+    <div className="relative w-full flex-1 flex flex-col items-center justify-center py-2 sm:py-6 px-1 sm:px-4 min-h-[440px] sm:min-h-[600px] overflow-hidden">
+      {/* Zoom / Scale Mini Toolbar at Top Right */}
+      {(onZoomIn || onZoomOut) && (
+        <div className="absolute top-2 right-2 sm:right-4 z-30 flex items-center gap-1.5 bg-saloon-900/85 border border-saloon-700/80 rounded-2xl px-2.5 py-1 backdrop-blur-md shadow-lg text-xs select-none">
+          <span className="text-[10px] text-zinc-400 font-bold hidden sm:inline">اندازه میز:</span>
+          <button
+            type="button"
+            onClick={onZoomOut}
+            className="w-6 h-6 rounded-lg bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-zinc-200 hover:text-amber-300 font-black flex items-center justify-center transition-all text-xs"
+            title="کوچک‌تر کردن میز و کارت‌ها (-)"
+          >
+            🔍−
+          </button>
+          <span className="text-[11px] font-mono font-black text-amber-400 min-w-[34px] text-center">
+            {Math.round((tableScale || 1) * 100)}%
+          </span>
+          <button
+            type="button"
+            onClick={onZoomIn}
+            className="w-6 h-6 rounded-lg bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-zinc-200 hover:text-amber-300 font-black flex items-center justify-center transition-all text-xs"
+            title="بزرگ‌تر کردن میز و کارت‌ها (+)"
+          >
+            🔍+
+          </button>
+          {onResetZoom && (
+            <button
+              type="button"
+              onClick={onResetZoom}
+              className="text-[10px] text-zinc-500 hover:text-zinc-300 px-1 py-0.5 rounded transition-colors"
+              title="ریست اندازه میز به حالت خودکار"
+            >
+              ↺
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Outer Table Arena Container with Dynamic Size and Scale */}
+      <div
+        className={`relative w-full ${maxWidthClass || 'max-w-5xl'} h-full min-h-[440px] sm:min-h-[580px] flex items-center justify-center transition-all duration-300 origin-center`}
+        style={{
+          transform: `scale(${tableScale || 1})`,
+        }}
+      >
         {/* The Oval Poker/Western Table Base */}
         <div className="absolute inset-2 sm:inset-10 western-felt rounded-[60px] sm:rounded-[200px] border-[8px] sm:border-[22px] border-[#361f14] outline outline-2 sm:outline-4 outline-amber-950/80 shadow-[inset_0_0_80px_rgba(0,0,0,0.85),0_25px_60px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden z-0">
           {/* Subtle felt rings & wood inlay watermark */}
@@ -198,6 +252,12 @@ export const WesternTable: React.FC<WesternTableProps> = ({
             </div>
           );
         })}
+
+        {/* Action Animation Overlay - CENTERED EXACTLY IN THE TABLE FELT! */}
+        <ActionAnimationOverlay
+          effect={activeEffect || gameState.lastEffect || null}
+          containerMode="table"
+        />
       </div>
     </div>
   );

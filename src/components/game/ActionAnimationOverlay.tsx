@@ -4,9 +4,13 @@ import { soundEngine } from '@/lib/audio/soundEffects';
 
 interface ActionAnimationOverlayProps {
   effect: ActionEffect | null;
+  containerMode?: 'table' | 'fullscreen';
 }
 
-export const ActionAnimationOverlay: React.FC<ActionAnimationOverlayProps> = ({ effect }) => {
+export const ActionAnimationOverlay: React.FC<ActionAnimationOverlayProps> = ({
+  effect,
+  containerMode = 'table',
+}) => {
   const [currentEffect, setCurrentEffect] = useState<ActionEffect | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -58,14 +62,24 @@ export const ActionAnimationOverlay: React.FC<ActionAnimationOverlayProps> = ({ 
 
   if (!isVisible || !currentEffect) return null;
 
+  const isTableMode = containerMode === 'table';
+
   return (
     <div
       onClick={() => setIsVisible(false)}
-      className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center overflow-hidden animate-in fade-in duration-150"
+      className={`${
+        isTableMode
+          ? 'absolute inset-0 z-40'
+          : 'fixed inset-0 z-50'
+      } pointer-events-none flex items-center justify-center overflow-visible animate-in fade-in duration-150`}
     >
       {/* 1. Action Banner at Top */}
-      <div className="absolute top-16 sm:top-20 z-50 flex flex-col items-center animate-in slide-in-from-top-6 duration-300">
-        <div className="bg-saloon-950/95 border-2 border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.5)] px-4 sm:px-6 py-2 rounded-2xl flex items-center gap-2.5 backdrop-blur-md">
+      <div
+        className={`absolute ${
+          isTableMode ? '-top-3 sm:-top-5' : 'top-16 sm:top-20'
+        } z-50 flex flex-col items-center animate-in slide-in-from-top-4 duration-300 pointer-events-auto`}
+      >
+        <div className="bg-saloon-950/95 border-2 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] px-4 sm:px-6 py-2 rounded-2xl flex items-center gap-2.5 backdrop-blur-md">
           {currentEffect.type === 'bang' && (
             <>
               <span className="text-2xl sm:text-3xl animate-bounce">💥</span>
@@ -215,17 +229,14 @@ export const ActionAnimationOverlay: React.FC<ActionAnimationOverlayProps> = ({ 
       </div>
 
       {/* 2. Visual Center Animations */}
-      {/* ================= BANG! REVOLVER SHOOTING ANIMATION ================= */}
+      {/* ================= BANG! REVOLVER SHOOTING ANIMATION (بدون نور زننده / Clean Western Gun) ================= */}
       {currentEffect.type === 'bang' && (
-        <div className="relative w-full h-full flex items-center justify-center">
-          {/* Subtle Flash Overlay */}
-          <div className="absolute inset-0 bg-amber-500/15 animate-ping duration-300 pointer-events-none" />
-
+        <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
           {/* Western Colt .45 Revolver Assembly */}
-          <div className="relative flex items-center justify-center translate-y-12 sm:translate-y-8">
+          <div className="relative flex items-center justify-center translate-y-4 sm:translate-y-2">
             {/* The Revolver SVG */}
             <svg
-              className="w-64 h-64 sm:w-84 sm:h-84 drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] -rotate-12"
+              className="w-52 h-52 sm:w-72 sm:h-72 drop-shadow-[0_12px_24px_rgba(0,0,0,0.85)] -rotate-12 animate-in zoom-in-75 duration-200"
               viewBox="0 0 400 240"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -304,36 +315,13 @@ export const ActionAnimationOverlay: React.FC<ActionAnimationOverlayProps> = ({ 
               <rect x="230" y="122" width="90" height="8" rx="2" fill="#1e293b" />
             </svg>
 
-            {/* Explosive Muzzle Flash at the Barrel End */}
-            <div className="absolute -top-8 right-0 sm:right-4 pointer-events-none animate-pulse">
-              <svg className="w-36 h-36 sm:w-48 sm:h-48" viewBox="0 0 100 100">
-                <polygon
-                  points="50,10 65,40 95,50 65,60 50,90 35,60 5,50 35,40"
-                  fill="url(#fireGradient)"
-                />
-                <polygon
-                  points="50,20 60,42 85,50 60,58 50,80 40,58 15,50 40,42"
-                  fill="#fef08a"
-                />
-                <circle cx="50" cy="50" r="16" fill="#ffffff" />
-                <defs>
-                  <radialGradient id="fireGradient">
-                    <stop offset="0%" stopColor="#ffffff" />
-                    <stop offset="30%" stopColor="#fef08a" />
-                    <stop offset="60%" stopColor="#f97316" />
-                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
-                  </radialGradient>
-                </defs>
-              </svg>
-            </div>
-
-            {/* Glowing Golden Tracer Bullet Streak */}
-            <div className="absolute top-10 left-[85%] w-72 sm:w-96 h-3 bg-gradient-to-r from-amber-300 via-yellow-400 to-transparent rounded-full shadow-[0_0_20px_#f59e0b] pointer-events-none" />
+            {/* Clean Brass Tracer Bullet Streak (بدون درخشش تند / Clean speed trail) */}
+            <div className="absolute top-10 left-[82%] w-56 sm:w-80 h-2 bg-gradient-to-r from-amber-400 via-yellow-200 to-transparent rounded-full pointer-events-none" />
 
             {/* Smoke Puff Clouds */}
-            <div className="absolute -top-12 right-0 flex gap-2 pointer-events-none">
-              <div className="w-12 h-12 rounded-full bg-white/40 blur-md animate-ping" />
-              <div className="w-16 h-16 rounded-full bg-zinc-300/30 blur-lg animate-pulse" />
+            <div className="absolute -top-10 right-2 flex gap-2 pointer-events-none opacity-75">
+              <div className="w-10 h-10 rounded-full bg-zinc-300/40 blur-md animate-ping" />
+              <div className="w-14 h-14 rounded-full bg-zinc-400/30 blur-lg animate-pulse" />
             </div>
           </div>
         </div>
