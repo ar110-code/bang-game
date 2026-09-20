@@ -18,6 +18,7 @@ import { SpecialDrawModal } from '@/components/game/SpecialDrawModal';
 import { TargetCardSelectModal } from '@/components/game/TargetCardSelectModal';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { ActionAnimationOverlay } from '@/components/game/ActionAnimationOverlay';
+import { SaloonChatPanel } from '@/components/game/SaloonChatPanel';
 import { soundEngine } from '@/lib/audio/soundEffects';
 
 export default function RoomPage() {
@@ -56,23 +57,46 @@ export default function RoomPage() {
   const [logModalOpen, setLogModalOpen] = useState(false);
 
   // Desktop Game Log resizable width & collapse state
-  const [gameLogWidth, setGameLogWidth] = useState<number>(320);
+  const [gameLogWidth, setGameLogWidth] = useState<number>(300);
   const [isLogCollapsed, setIsLogCollapsed] = useState<boolean>(false);
   const [tableZoomOffset, setTableZoomOffset] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const isResizingRef = useRef<boolean>(false);
 
+  // Desktop Saloon Chat resizable width, collapse & hide state
+  const [chatWidth, setChatWidth] = useState<number>(280);
+  const [isChatCollapsed, setIsChatCollapsed] = useState<boolean>(false);
+  const [isChatHidden, setIsChatHidden] = useState<boolean>(false);
+  const [chatMobileOpen, setChatMobileOpen] = useState<boolean>(false);
+  const [chatUnreadCount, setChatUnreadCount] = useState<number>(0);
+  const [speakingPlayerIds, setSpeakingPlayerIds] = useState<string[]>([]);
+  const isResizingChatRef = useRef<boolean>(false);
+
   // Persist log width & collapse preferences
   useEffect(() => {
     try {
-      const savedWidth = localStorage.getItem('bang_log_width');
-      if (savedWidth) {
-        const w = parseInt(savedWidth, 10);
-        if (!isNaN(w) && w >= 160 && w <= 560) setGameLogWidth(w);
+      const savedLogWidth = localStorage.getItem('bang_log_width');
+      if (savedLogWidth) {
+        const w = parseInt(savedLogWidth, 10);
+        if (!isNaN(w) && w >= 160 && w <= 520) setGameLogWidth(w);
       }
-      const savedCollapsed = localStorage.getItem('bang_log_collapsed');
-      if (savedCollapsed) {
-        setIsLogCollapsed(savedCollapsed === 'true');
+      const savedLogCollapsed = localStorage.getItem('bang_log_collapsed');
+      if (savedLogCollapsed) {
+        setIsLogCollapsed(savedLogCollapsed === 'true');
+      }
+
+      const savedChatWidth = localStorage.getItem('bang_chat_width');
+      if (savedChatWidth) {
+        const cw = parseInt(savedChatWidth, 10);
+        if (!isNaN(cw) && cw >= 180 && cw <= 520) setChatWidth(cw);
+      }
+      const savedChatCollapsed = localStorage.getItem('bang_chat_collapsed');
+      if (savedChatCollapsed) {
+        setIsChatCollapsed(savedChatCollapsed === 'true');
+      }
+      const savedChatHidden = localStorage.getItem('bang_chat_hidden');
+      if (savedChatHidden) {
+        setIsChatHidden(savedChatHidden === 'true');
       }
     } catch (e) {}
   }, []);
@@ -81,26 +105,37 @@ export default function RoomPage() {
     try {
       localStorage.setItem('bang_log_width', String(gameLogWidth));
       localStorage.setItem('bang_log_collapsed', String(isLogCollapsed));
+      localStorage.setItem('bang_chat_width', String(chatWidth));
+      localStorage.setItem('bang_chat_collapsed', String(isChatCollapsed));
+      localStorage.setItem('bang_chat_hidden', String(isChatHidden));
     } catch (e) {}
-  }, [gameLogWidth, isLogCollapsed]);
+  }, [gameLogWidth, isLogCollapsed, chatWidth, isChatCollapsed, isChatHidden]);
 
-  // Compute table dynamic scale and max width class based on GameLog width and manual zoom
+  // Compute table dynamic scale and max width class based on side panels and manual zoom
   const baseTableScale = useMemo(() => {
-    if (isLogCollapsed) return 1.14;
-    if (gameLogWidth <= 240) return 1.08;
-    if (gameLogWidth <= 320) return 1.0;
-    if (gameLogWidth <= 420) return 0.92;
-    return 0.84;
-  }, [isLogCollapsed, gameLogWidth]);
+    const leftWidth = isLogCollapsed ? 48 : gameLogWidth;
+    const rightWidth = isChatHidden ? 0 : (isChatCollapsed ? 48 : chatWidth);
+    const totalSideWidth = leftWidth + rightWidth;
+
+    if (totalSideWidth <= 100) return 1.15;
+    if (totalSideWidth <= 350) return 1.08;
+    if (totalSideWidth <= 580) return 0.98;
+    if (totalSideWidth <= 750) return 0.88;
+    return 0.80;
+  }, [isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
 
   const currentTableScale = Math.max(0.65, Math.min(1.4, baseTableScale + tableZoomOffset));
 
   const tableMaxWidthClass = useMemo(() => {
-    if (isLogCollapsed) return 'max-w-7xl';
-    if (gameLogWidth <= 240) return 'max-w-6xl';
-    if (gameLogWidth <= 340) return 'max-w-5xl';
+    const leftWidth = isLogCollapsed ? 48 : gameLogWidth;
+    const rightWidth = isChatHidden ? 0 : (isChatCollapsed ? 48 : chatWidth);
+    const totalSideWidth = leftWidth + rightWidth;
+
+    if (totalSideWidth <= 100) return 'max-w-7xl';
+    if (totalSideWidth <= 420) return 'max-w-6xl';
+    if (totalSideWidth <= 650) return 'max-w-5xl';
     return 'max-w-4xl';
-  }, [isLogCollapsed, gameLogWidth]);
+  }, [isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
 
   const currentCardSize: 'sm' | 'md' | 'lg' = useMemo(() => {
     if (currentTableScale >= 1.08) return 'md';
@@ -108,6 +143,7 @@ export default function RoomPage() {
     return 'md';
   }, [currentTableScale]);
 
+  // Resize handler for Left Game Log
   const handleStartResize = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     isResizingRef.current = true;
@@ -118,10 +154,7 @@ export default function RoomPage() {
       if (!isResizingRef.current || !containerRef.current) return;
       const clientX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
       const rect = containerRef.current.getBoundingClientRect();
-      const isLogOnLeft = clientX - rect.left < rect.right - clientX;
-      const newWidth = isLogOnLeft
-        ? Math.max(160, Math.min(560, clientX - rect.left))
-        : Math.max(160, Math.min(560, rect.right - clientX));
+      const newWidth = Math.max(160, Math.min(520, clientX - rect.left));
 
       setGameLogWidth(newWidth);
       if (isLogCollapsed) setIsLogCollapsed(false);
@@ -142,6 +175,53 @@ export default function RoomPage() {
     window.addEventListener('touchmove', onMove);
     window.addEventListener('touchend', onEnd);
   };
+
+  // Resize handler for Right Saloon Chat Panel
+  const handleStartChatResize = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    isResizingChatRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMove = (moveEvent: MouseEvent | TouchEvent) => {
+      if (!isResizingChatRef.current || !containerRef.current) return;
+      const clientX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
+      const rect = containerRef.current.getBoundingClientRect();
+      const newWidth = Math.max(180, Math.min(520, rect.right - clientX));
+
+      setChatWidth(newWidth);
+      if (isChatCollapsed) setIsChatCollapsed(false);
+    };
+
+    const onEnd = () => {
+      isResizingChatRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove);
+    window.addEventListener('touchend', onEnd);
+  };
+
+  // Listen for chat messages to increment unread counter when chat is hidden or collapsed
+  useEffect(() => {
+    const socket = getSocket();
+    const handleNewMessage = () => {
+      if (isChatCollapsed || isChatHidden) {
+        setChatUnreadCount((prev) => prev + 1);
+      }
+    };
+    socket.on('new_chat_message', handleNewMessage);
+    return () => {
+      socket.off('new_chat_message', handleNewMessage);
+    };
+  }, [isChatCollapsed, isChatHidden]);
 
   useEffect(() => {
     let storedId = sessionStorage.getItem('bang_player_id');
@@ -444,6 +524,34 @@ export default function RoomPage() {
               <span>وقایع</span>
             </button>
           )}
+
+          {/* Saloon Chat & Voice Toggle Button */}
+          <button
+            onClick={() => {
+              if (window.innerWidth < 1024) {
+                setChatMobileOpen(true);
+              } else {
+                if (isChatHidden) {
+                  setIsChatHidden(false);
+                  setIsChatCollapsed(false);
+                } else {
+                  setIsChatCollapsed((prev) => !prev);
+                }
+              }
+              setChatUnreadCount(0);
+            }}
+            className="text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2.5 py-1 rounded-xl transition-all shadow-sm flex items-center gap-1 active:scale-95 relative"
+            title="چت متنی و گفتگوی صوتی سالون وسترن"
+          >
+            <span>💬</span>
+            <span className="hidden sm:inline">چت و ویس</span>
+            <span className="sm:hidden">چت</span>
+            {chatUnreadCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-black flex items-center justify-center animate-bounce shadow">
+                {chatUnreadCount > 9 ? '+۹' : chatUnreadCount}
+              </span>
+            )}
+          </button>
           <button
             onClick={handleToggleSound}
             className="text-xs text-zinc-300 hover:text-amber-300 bg-saloon-800 border border-saloon-700 px-2.5 py-1 rounded-xl transition-all"
@@ -477,45 +585,13 @@ export default function RoomPage() {
         </div>
       ) : (
         <div className="flex-1 flex flex-col justify-between overflow-y-auto">
-          {/* Western Table & Resizable Game Log Arena */}
+          {/* Western Table, Game Log & Saloon Chat Arena */}
           <div
             ref={containerRef}
-            className="flex-1 flex flex-col lg:flex-row items-center justify-center relative w-full overflow-hidden"
+            dir="ltr"
+            className="flex-1 flex flex-col lg:flex-row items-center justify-between relative w-full overflow-hidden"
           >
-            {/* Western Table with Dynamic Scale and centered Action Effects */}
-            <div className="flex-1 w-full h-full flex items-center justify-center relative overflow-hidden">
-              <WesternTable
-                gameState={gameState}
-                myPlayerId={myPlayerId}
-                selectedCard={selectedCard}
-                onSelectTarget={handleSelectTarget}
-                onInspectPlayer={(p) => setInspectedPlayer(p)}
-                onInspectCard={(c) => setInspectedCard(c)}
-                activeEffect={activeEffect}
-                onEffectComplete={() => setActiveEffect(null)}
-                tableScale={currentTableScale}
-                maxWidthClass={tableMaxWidthClass}
-                onZoomIn={() => setTableZoomOffset((prev) => Math.min(0.35, prev + 0.08))}
-                onZoomOut={() => setTableZoomOffset((prev) => Math.max(-0.35, prev - 0.08))}
-                onResetZoom={() => setTableZoomOffset(0)}
-              />
-            </div>
-
-            {/* Desktop Draggable Divider Handle */}
-            <div
-              onMouseDown={handleStartResize}
-              onTouchStart={handleStartResize}
-              className="hidden lg:flex w-2.5 hover:w-3.5 hover:bg-amber-500/25 active:bg-amber-500/50 cursor-col-resize items-center justify-center group transition-all self-stretch select-none z-20 shrink-0"
-              title="برای تغییر اندازه وقایع‌نگار بکشید"
-            >
-              <div className="w-1 h-14 rounded-full bg-saloon-800 group-hover:bg-amber-400 group-active:bg-amber-300 transition-colors flex flex-col items-center justify-center gap-1">
-                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
-                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
-                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
-              </div>
-            </div>
-
-            {/* Desktop Side Game Log with Dynamic Width & Collapse */}
+            {/* 1. Desktop Left Side Game Log */}
             <div
               style={{
                 width: isLogCollapsed ? 48 : gameLogWidth,
@@ -531,9 +607,87 @@ export default function RoomPage() {
                 onToggleCollapse={() => setIsLogCollapsed((prev) => !prev)}
                 onResizeStep={(delta) => {
                   if (isLogCollapsed) setIsLogCollapsed(false);
-                  setGameLogWidth((prev) => Math.max(160, Math.min(560, prev + delta)));
+                  setGameLogWidth((prev) => Math.max(160, Math.min(520, prev + delta)));
                 }}
                 currentWidth={gameLogWidth}
+              />
+            </div>
+
+            {/* Desktop Draggable Divider Handle for Game Log */}
+            <div
+              onMouseDown={handleStartResize}
+              onTouchStart={handleStartResize}
+              className="hidden lg:flex w-2.5 hover:w-3.5 hover:bg-amber-500/25 active:bg-amber-500/50 cursor-col-resize items-center justify-center group transition-all self-stretch select-none z-20 shrink-0"
+              title="برای تغییر اندازه وقایع‌نگار بکشید"
+            >
+              <div className="w-1 h-14 rounded-full bg-saloon-800 group-hover:bg-amber-400 group-active:bg-amber-300 transition-colors flex flex-col items-center justify-center gap-1">
+                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+                <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+              </div>
+            </div>
+
+            {/* 2. Center Western Table with Dynamic Scale and centered Action Effects */}
+            <div className="flex-1 w-full h-full flex items-center justify-center relative overflow-hidden">
+              <WesternTable
+                gameState={gameState}
+                myPlayerId={myPlayerId}
+                selectedCard={selectedCard}
+                onSelectTarget={handleSelectTarget}
+                onInspectPlayer={(p) => setInspectedPlayer(p)}
+                onInspectCard={(c) => setInspectedCard(c)}
+                activeEffect={activeEffect}
+                onEffectComplete={() => setActiveEffect(null)}
+                tableScale={currentTableScale}
+                maxWidthClass={tableMaxWidthClass}
+                onZoomIn={() => setTableZoomOffset((prev) => Math.min(0.35, prev + 0.08))}
+                onZoomOut={() => setTableZoomOffset((prev) => Math.max(-0.35, prev - 0.08))}
+                onResetZoom={() => setTableZoomOffset(0)}
+                speakingPlayerIds={speakingPlayerIds}
+              />
+            </div>
+
+            {/* Desktop Draggable Divider Handle for Saloon Chat */}
+            {!isChatHidden && (
+              <div
+                onMouseDown={handleStartChatResize}
+                onTouchStart={handleStartChatResize}
+                className="hidden lg:flex w-2.5 hover:w-3.5 hover:bg-amber-500/25 active:bg-amber-500/50 cursor-col-resize items-center justify-center group transition-all self-stretch select-none z-20 shrink-0"
+                title="برای تغییر اندازه چت سالون بکشید"
+              >
+                <div className="w-1 h-14 rounded-full bg-saloon-800 group-hover:bg-amber-400 group-active:bg-amber-300 transition-colors flex flex-col items-center justify-center gap-1">
+                  <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-zinc-400" />
+                </div>
+              </div>
+            )}
+
+            {/* 3. Desktop Right Side Saloon Chat & Voice Panel */}
+            <div
+              style={{
+                display: isChatHidden ? 'none' : 'block',
+                width: isChatCollapsed ? 48 : chatWidth,
+                transition: isResizingChatRef.current ? 'none' : 'width 0.2s ease-out',
+              }}
+              className="hidden lg:block p-2 sm:p-3 self-stretch shrink-0 overflow-hidden"
+            >
+              <SaloonChatPanel
+                roomId={roomId}
+                myPlayerId={myPlayerId}
+                playerName={playerName}
+                players={gameState.players}
+                currentWidth={chatWidth}
+                isCollapsed={isChatCollapsed}
+                onToggleCollapse={() => setIsChatCollapsed((prev) => !prev)}
+                onClose={() => setIsChatHidden(true)}
+                onResizeStep={(delta) => {
+                  if (isChatCollapsed) setIsChatCollapsed(false);
+                  setChatWidth((prev) => Math.max(180, Math.min(520, prev + delta)));
+                }}
+                unreadCount={chatUnreadCount}
+                onResetUnread={() => setChatUnreadCount(0)}
+                onSpeakingPeersChange={setSpeakingPlayerIds}
               />
             </div>
           </div>
@@ -687,6 +841,57 @@ export default function RoomPage() {
               </div>
             </div>
           )}
+
+          {/* Floating Reopen Chat Button (when hidden on desktop) */}
+          {isChatHidden && (
+            <button
+              onClick={() => {
+                setIsChatHidden(false);
+                setIsChatCollapsed(false);
+                setChatUnreadCount(0);
+              }}
+              className="hidden lg:flex fixed bottom-28 right-5 z-40 bg-gradient-to-r from-amber-800 to-saloon-900 hover:from-amber-700 hover:to-saloon-800 border-2 border-amber-500/80 hover:border-amber-400 text-amber-200 hover:text-white px-4 py-2.5 rounded-2xl shadow-2xl items-center gap-2 text-xs font-black transition-all hover:scale-105 active:scale-95 group select-none"
+              title="نمایش مجدد چت و ویس‌چت سالون"
+            >
+              <span className="text-base group-hover:rotate-12 transition-transform">💬</span>
+              <span>چت و ویس سالون</span>
+              {chatUnreadCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center animate-bounce shadow">
+                  {chatUnreadCount > 9 ? '+۹' : chatUnreadCount}
+                </span>
+              )}
+              <span className="text-emerald-400 text-xs">🎙️</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Saloon Chat Modal (For Mobile screens or Lobby view) */}
+      {chatMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 select-none animate-in fade-in duration-200"
+          onClick={() => setChatMobileOpen(false)}
+        >
+          <div
+            className="relative bg-saloon-950 border-2 border-amber-600/80 rounded-3xl max-w-md w-full p-2 shadow-2xl text-right overflow-hidden flex flex-col h-[560px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SaloonChatPanel
+              roomId={roomId}
+              myPlayerId={myPlayerId}
+              playerName={playerName}
+              players={gameState.players}
+              currentWidth={360}
+              isCollapsed={false}
+              onToggleCollapse={() => setChatMobileOpen(false)}
+              onClose={() => setChatMobileOpen(false)}
+              onResizeStep={() => {}}
+              className="h-full border-none shadow-none p-1 bg-transparent w-full"
+              unreadCount={chatUnreadCount}
+              onResetUnread={() => setChatUnreadCount(0)}
+              onSpeakingPeersChange={setSpeakingPlayerIds}
+            />
+          </div>
         </div>
       )}
     </div>

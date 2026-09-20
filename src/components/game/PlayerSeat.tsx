@@ -14,6 +14,7 @@ interface PlayerSeatProps {
   onSelectTarget?: () => void;
   onInspect?: (player: PublicPlayer) => void;
   compact?: boolean;
+  isSpeaking?: boolean;
 }
 
 export const PlayerSeat: React.FC<PlayerSeatProps> = ({
@@ -26,6 +27,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
   onSelectTarget,
   onInspect,
   compact = false,
+  isSpeaking = false,
 }) => {
   const isDead = player.isEliminated;
   const [charImgError, setCharImgError] = useState(false);
@@ -113,7 +115,9 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
       className={`relative flex flex-col p-1 sm:p-2 rounded-2xl transition-all duration-200 select-none z-20 ${
         compact ? 'w-[114px] sm:w-56' : 'w-32 sm:w-60'
       } ${
-        isCurrentTurn
+        isSpeaking
+          ? 'ring-2 ring-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.85)] border-emerald-400'
+          : isCurrentTurn
           ? 'bg-saloon-900/95 ring-2 ring-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.4)] border-amber-500'
           : 'bg-saloon-950/92 border border-saloon-700/80 shadow-xl'
       } ${isDead ? 'opacity-40 grayscale' : 'cursor-pointer hover:border-amber-600/80'} ${
@@ -162,6 +166,11 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
               {player.name}
             </span>
             {isMe && <span className="text-[8px] sm:text-[9px] font-bold text-amber-400 shrink-0">(شما)</span>}
+            {isSpeaking && (
+              <span className="text-[9px] sm:text-[10px] animate-pulse text-emerald-400 shrink-0" title="در حال صحبت در ویس‌چت...">
+                🎙️
+              </span>
+            )}
           </div>
 
           {/* Turn Indicator or Active Status */}

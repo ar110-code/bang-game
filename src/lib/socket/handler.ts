@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import { GameState, TargetCardChoice } from '../game-engine/types';
+import { GameState, TargetCardChoice, ChatMessage, VoicePeerState } from '../game-engine/types';
 import {
   createInitialState,
   addPlayerToRoom,
@@ -20,6 +20,8 @@ const rooms = new Map<string, GameState>();
 const socketPlayerMap = new Map<string, { roomId: string; playerId: string }>();
 const botActionTimers = new Map<string, NodeJS.Timeout>();
 const roomCountdownTimers = new Map<string, NodeJS.Timeout>();
+const roomChatMap = new Map<string, ChatMessage[]>();
+const voiceRooms = new Map<string, Map<string, VoicePeerState>>();
 
 export function setupSocketHandlers(io: Server) {
   function broadcastState(roomId: string) {
@@ -127,6 +129,10 @@ export function setupSocketHandlers(io: Server) {
           socket.join(cleanRoomId);
           socketPlayerMap.set(socket.id, { roomId: cleanRoomId, playerId: player.id });
           broadcastState(cleanRoomId);
+
+          // Emit chat history to joining player
+          const chatHistory = roomChatMap.get(cleanRoomId) || [];
+          socket.emit('chat_history', chatHistory);
         }
       }
     );
@@ -324,9 +330,145 @@ export function setupSocketHandlers(io: Server) {
       }
     );
 
+    // ================= CHAT HANDLERS =================
+    socket.on(
+      'send_chat_message',
+      ({ roomId, text, type }: { roomId: string; text: string; type?: 'text' | 'quick' }) => {
+        const cleanRoomId = roomId.toUpperCase().trim();
+        const state = rooms.get(cleanRoomId);
+        const mapping = socketPlayerMap.get(socket.id);
+        if (!state || !mapping) return;
+
+        const trimmed = (text || '').trim();
+        if (!trimmed || trimmed.length > 350) return;
+
+        const player = state.players.find((p) => p.id === mapping.playerId);
+        if (!player) return;
+
+        const message: ChatMessage = {
+          id: `chat_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          senderId: player.id,
+          senderName: player.name,
+          senderCharacterName: player.character?.name,
+          senderCharacterTitleFa: player.character?.titleFa,
+          senderRole: player.role === 'sheriff' || player.isEliminated ? player.role : 'hidden',
+          text: trimmed,
+          timestamp: Date.now(),
+          type: type || 'text',
+        };
+
+        if (!roomChatMap.has(cleanRoomId)) {
+          roomChatMap.set(cleanRoomId, []);
+        }
+        const history = roomChatMap.get(cleanRoomId)!;
+        history.push(message);
+        if (history.length > 120) {
+          history.shift();
+        }
+
+        io.to(cleanRoomId).emit('new_chat_message', message);
+      }
+    );
+
+    socket.on('get_chat_history', ({ roomId }: { roomId: string }) => {
+      const cleanRoomId = roomId.toUpperCase().trim();
+      const history = roomChatMap.get(cleanRoomId) || [];
+      socket.emit('chat_history', history);
+    });
+
+    // ================= WEBRTC VOICE CHAT SIGNALING =================
+    socket.on('voice_join', ({ roomId }: { roomId: string }) => {
+      const cleanRoomId = roomId.toUpperCase().trim();
+      const state = rooms.get(cleanRoomId);
+      const mapping = socketPlayerMap.get(socket.id);
+      if (!state || !mapping) return;
+
+      const player = state.players.find((p) => p.id === mapping.playerId);
+      if (!player) return;
+
+      if (!voiceRooms.has(cleanRoomId)) {
+        voiceRooms.set(cleanRoomId, new Map());
+      }
+      const roomVoicePeers = voiceRooms.get(cleanRoomId)!;
+
+      const newPeer: VoicePeerState = {
+        playerId: player.id,
+        socketId: socket.id,
+        name: player.name,
+        characterName: player.character?.name,
+        isMuted: false,
+        isDeafened: false,
+        isSpeaking: false,
+      };
+
+      // 1. Send currently connected voice peers to the newcomer
+      const existingPeers = Array.from(roomVoicePeers.values());
+      socket.emit('voice_room_peers', { peers: existingPeers });
+
+      // 2. Save newcomer in voice room
+      roomVoicePeers.set(socket.id, newPeer);
+
+      // 3. Notify everyone else in the room
+      socket.to(cleanRoomId).emit('voice_peer_joined', { peer: newPeer });
+    });
+
+    socket.on('voice_leave', ({ roomId }: { roomId: string }) => {
+      const cleanRoomId = roomId.toUpperCase().trim();
+      const roomVoicePeers = voiceRooms.get(cleanRoomId);
+      if (roomVoicePeers && roomVoicePeers.has(socket.id)) {
+        roomVoicePeers.delete(socket.id);
+        io.to(cleanRoomId).emit('voice_peer_left', { socketId: socket.id });
+      }
+    });
+
+    socket.on(
+      'voice_signal',
+      ({ toSocketId, signal }: { roomId: string; toSocketId: string; signal: any }) => {
+        const mapping = socketPlayerMap.get(socket.id);
+        io.to(toSocketId).emit('voice_signal', {
+          fromSocketId: socket.id,
+          fromPlayerId: mapping?.playerId,
+          signal,
+        });
+      }
+    );
+
+    socket.on(
+      'voice_state_update',
+      ({
+        roomId,
+        isMuted,
+        isDeafened,
+        isSpeaking,
+      }: {
+        roomId: string;
+        isMuted?: boolean;
+        isDeafened?: boolean;
+        isSpeaking?: boolean;
+      }) => {
+        const cleanRoomId = roomId.toUpperCase().trim();
+        const roomVoicePeers = voiceRooms.get(cleanRoomId);
+        if (roomVoicePeers && roomVoicePeers.has(socket.id)) {
+          const peer = roomVoicePeers.get(socket.id)!;
+          if (typeof isMuted === 'boolean') peer.isMuted = isMuted;
+          if (typeof isDeafened === 'boolean') peer.isDeafened = isDeafened;
+          if (typeof isSpeaking === 'boolean') peer.isSpeaking = isSpeaking;
+
+          io.to(cleanRoomId).emit('voice_peer_updated', { peer });
+        }
+      }
+    );
+
     socket.on('disconnect', () => {
       const mapping = socketPlayerMap.get(socket.id);
       if (mapping) {
+        // Clean up from voice chat
+        const roomVoicePeers = voiceRooms.get(mapping.roomId);
+        if (roomVoicePeers && roomVoicePeers.has(socket.id)) {
+          roomVoicePeers.delete(socket.id);
+          io.to(mapping.roomId).emit('voice_peer_left', { socketId: socket.id });
+        }
+
         const state = rooms.get(mapping.roomId);
         if (state) {
           if (state.status === 'lobby') {

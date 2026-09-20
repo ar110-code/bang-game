@@ -205,3 +205,25 @@ export interface PublicGameState {
   lastEffect?: ActionEffect | null;
 }
 
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderCharacterName?: string;
+  senderCharacterTitleFa?: string;
+  senderRole?: Role | 'hidden';
+  text: string;
+  timestamp: number;
+  type?: 'text' | 'quick' | 'system';
+}
+
+export interface VoicePeerState {
+  playerId: string;
+  socketId: string;
+  name: string;
+  characterName?: string;
+  isMuted: boolean;
+  isDeafened: boolean;
+  isSpeaking: boolean;
+}
+

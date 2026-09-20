@@ -19,6 +19,7 @@ interface WesternTableProps {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onResetZoom?: () => void;
+  speakingPlayerIds?: string[];
 }
 
 export const WesternTable: React.FC<WesternTableProps> = ({
@@ -35,6 +36,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
   onZoomIn,
   onZoomOut,
   onResetZoom,
+  speakingPlayerIds = [],
 }) => {
   const myPlayer = gameState.players.find((p) => p.id === myPlayerId);
 
@@ -250,6 +252,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
                 onSelectTarget={() => onSelectTarget(player.id)}
                 onInspect={onInspectPlayer}
                 compact={true}
+                isSpeaking={speakingPlayerIds?.includes(player.id)}
               />
             </div>
           );
