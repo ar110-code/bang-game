@@ -40,6 +40,7 @@ export function setupSocketHandlers(io: Server) {
 
     if (state.lastEffect) {
       io.to(roomId).emit('action_effect', state.lastEffect);
+      state.lastEffect = null;
     }
 
     // Check if a Bot needs to take an action with a safe guarded timer
@@ -72,7 +73,7 @@ export function setupSocketHandlers(io: Server) {
           if (currentState && currentState.status === 'playing') {
             executeBotTurn(currentState, botTargetId!, () => broadcastState(roomId));
           }
-        }, 750);
+        }, 400);
         botActionTimers.set(roomId, timer);
       }
     } else if (existingTimer) {

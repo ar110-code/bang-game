@@ -68,7 +68,7 @@ export const TargetCardSelectModal: React.FC<TargetCardSelectModalProps> = ({
           </p>
           <p className="text-xs text-zinc-400 mt-0.5">
             {isPanic
-              ? 'کارت مورد نظر را برای اضافه شدن به دست خود انتخاب کنید:'
+              ? 'کارت تهدید فقط از دست حریف در فاصله ۱ فرسخ دزدیده می‌شود. یکی از کارت‌ها را انتخاب کنید:'
               : 'کارت مورد نظر را برای سوزانده شدن و دور انداختن انتخاب کنید:'}
           </p>
         </div>
@@ -139,18 +139,18 @@ export const TargetCardSelectModal: React.FC<TargetCardSelectModalProps> = ({
                   <div className="w-8 h-8 rounded-full border border-amber-600/40 flex items-center justify-center text-sm mb-1 group-hover:bg-amber-600/20 transition-colors">
                     🤠
                   </div>
-                  <span className="text-[10px] font-black text-amber-200 group-hover:text-white">
-                    کارت {idx + 1}
-                  </span>
-                  <span className="text-[9px] text-zinc-400 block group-hover:text-amber-300">
-                    (پشت‌رو)
+                  <span className="text-[10px] font-bold text-amber-200">کارت #{idx + 1}</span>
+                  <span className="text-[9px] text-zinc-400 group-hover:text-amber-300 mt-1">
+                    {isPanic ? 'سرقت این کارت' : 'سوزاندن'}
                   </span>
                 </button>
               ))}
             </div>
           ) : (
-            <div className="text-center py-2 text-xs text-zinc-500">
-              این بازیکن در حال حاضر هیچ کارتی در دست ندارد.
+            <div className="text-center py-3 text-xs text-rose-300 font-bold">
+              {isPanic
+                ? 'این بازیکن هیچ کارتی در دست ندارد (کارت تهدید فقط از دست دزدیده می‌شود)!'
+                : 'این بازیکن کارتی در دست ندارد.'}
             </div>
           )}
         </div>

@@ -194,10 +194,10 @@ export const BASE_CARDS_BLUEPRINT: CardTemplate[] = [
   { name: 'general_store', titleFa: 'فروشگاه', descFa: 'رو کردن کارت به تعداد بازیکنان و تقسیم ساعت‌گرد بین همه', border: 'brown', suit: 'spades', rank: '10' },
 
   // 4x PANIC! (تهدید!)
-  { name: 'panic', titleFa: 'تهدید!', descFa: 'دزدیدن ۱ کارت از دست یا تجهیزات بازیکنی در فاصله ۱ فرسخ', border: 'brown', suit: 'hearts', rank: 'J' },
-  { name: 'panic', titleFa: 'تهدید!', descFa: 'دزدیدن ۱ کارت از دست یا تجهیزات بازیکنی در فاصله ۱ فرسخ', border: 'brown', suit: 'hearts', rank: 'Q' },
-  { name: 'panic', titleFa: 'تهدید!', descFa: 'دزدیدن ۱ کارت از دست یا تجهیزات بازیکنی در فاصله ۱ فرسخ', border: 'brown', suit: 'hearts', rank: 'A' },
-  { name: 'panic', titleFa: 'تهدید!', descFa: 'دزدیدن ۱ کارت از دست یا تجهیزات بازیکنی در فاصله ۱ فرسخ', border: 'brown', suit: 'diamonds', rank: '8' },
+  { name: 'panic', titleFa: 'تهدید!', descFa: 'دزدیدن ۱ کارت از دست بازیکنی در فاصله ۱ فرسخ', border: 'brown', suit: 'hearts', rank: 'J' },
+  { name: 'panic', titleFa: 'تهدید!', descFa: 'دزدیدن ۱ کارت از دست بازیکنی در فاصله ۱ فرسخ', border: 'brown', suit: 'hearts', rank: 'Q' },
+  { name: 'panic', titleFa: 'تهدید!', descFa: 'دزدیدن ۱ کارت از دست بازیکنی در فاصله ۱ فرسخ', border: 'brown', suit: 'hearts', rank: 'A' },
+  { name: 'panic', titleFa: 'تهدید!', descFa: 'دزدیدن ۱ کارت از دست بازیکنی در فاصله ۱ فرسخ', border: 'brown', suit: 'diamonds', rank: '8' },
 
   // 4x CAT BALOU
   { name: 'cat_balou', titleFa: 'کت بالو', descFa: 'سوزاندن ۱ کارت از دست یا تجهیزات هر بازیکنی در هر فاصله‌ای', border: 'brown', suit: 'hearts', rank: 'K' },

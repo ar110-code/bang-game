@@ -29,8 +29,8 @@ export const GameLog: React.FC<GameLogProps> = ({
 
   // Auto-scroll to bottom whenever logs change
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs, filterPlayerId]);
+    bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+  }, [logs.length, filterPlayerId]);
 
   const selectedPlayer = useMemo(() => {
     if (filterPlayerId === 'all') return null;

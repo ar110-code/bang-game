@@ -13,6 +13,7 @@ interface WesternTableProps {
   onInspectPlayer?: (player: PublicPlayer) => void;
   onInspectCard?: (card: Card) => void;
   activeEffect?: ActionEffect | null;
+  onEffectComplete?: () => void;
   tableScale?: number;
   maxWidthClass?: string;
   onZoomIn?: () => void;
@@ -28,6 +29,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
   onInspectPlayer,
   onInspectCard,
   activeEffect,
+  onEffectComplete,
   tableScale = 1,
   maxWidthClass,
   onZoomIn,
@@ -44,6 +46,16 @@ export const WesternTable: React.FC<WesternTableProps> = ({
     return [...all.slice(myIndex), ...all.slice(0, myIndex)];
   }, [gameState.players, myPlayerId]);
 
+  // Memoized mockState for distance calculations to prevent 14x allocations per frame
+  const mockState = useMemo(() => {
+    return {
+      players: gameState.players.map((p) => ({
+        ...p,
+        hand: [],
+      })),
+    } as any;
+  }, [gameState.players]);
+
   // Check which players can be targeted by the selected card
   const isTargetable = (target: PublicPlayer): boolean => {
     if (!selectedCard || !myPlayer || myPlayer.isEliminated || target.isEliminated || target.id === myPlayerId) {
@@ -56,27 +68,23 @@ export const WesternTable: React.FC<WesternTableProps> = ({
       (myPlayer.character?.name === 'calamity_janet' && selectedCard.name === 'missed');
 
     if (isBangCard) {
-      const mockState = {
-        players: gameState.players.map((p) => ({
-          ...p,
-          hand: [],
-        })),
-      } as any;
       return canShootTarget(mockState, myPlayerId, target.id);
     }
 
+    // PANIC! (تهدید): ONLY from hand! Target MUST have at least 1 card in hand, and distance <= 1!
     if (selectedCard.name === 'panic') {
-      const mockState = {
-        players: gameState.players.map((p) => ({
-          ...p,
-          hand: [],
-        })),
-      } as any;
+      if (target.handCount <= 0) return false;
       const dist = calculateEffectiveDistance(mockState, myPlayerId, target.id);
       return dist <= 1;
     }
 
-    if (selectedCard.name === 'cat_balou' || selectedCard.name === 'duel') {
+    // CAT BALOU: Can burn from hand OR in-play equipment!
+    if (selectedCard.name === 'cat_balou') {
+      const hasEquipment = Object.values(target.equipment || {}).some(Boolean);
+      return target.handCount > 0 || hasEquipment;
+    }
+
+    if (selectedCard.name === 'duel') {
       return true; // Any distance!
     }
 
@@ -91,12 +99,6 @@ export const WesternTable: React.FC<WesternTableProps> = ({
     if (!myPlayer || myPlayer.isEliminated || target.isEliminated || target.id === myPlayerId) {
       return undefined;
     }
-    const mockState = {
-      players: gameState.players.map((p) => ({
-        ...p,
-        hand: [],
-      })),
-    } as any;
     const dist = calculateEffectiveDistance(mockState, myPlayerId, target.id);
     return dist >= 900 ? undefined : dist;
   };
@@ -257,6 +259,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
         <ActionAnimationOverlay
           effect={activeEffect || gameState.lastEffect || null}
           containerMode="table"
+          onComplete={onEffectComplete}
         />
       </div>
     </div>

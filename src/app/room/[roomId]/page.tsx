@@ -170,18 +170,7 @@ export default function RoomPage() {
     socket.on('connect', emitJoin);
 
     socket.on('game_state', (state: PublicGameState) => {
-      setGameState((prev) => {
-        // Play sounds based on events
-        if (state.status === 'playing') {
-          if (state.logs.length > (prev?.logs.length || 0)) {
-            const lastLog = state.logs[state.logs.length - 1];
-            if (lastLog?.type === 'attack') soundEngine.playGunshot();
-            if (lastLog?.type === 'heal') soundEngine.playHeal();
-            if (lastLog?.text.includes('منفجر')) soundEngine.playExplosion();
-          }
-        }
-        return state;
-      });
+      setGameState(state);
     });
 
     socket.on('error_message', (msg: string) => {
@@ -283,6 +272,25 @@ export default function RoomPage() {
     if (selectedCard && (selectedCard.name === 'cat_balou' || selectedCard.name === 'panic')) {
       const targetP = gameState?.players.find((p) => p.id === targetPlayerId);
       if (targetP) {
+        if (selectedCard.name === 'panic') {
+          if (targetP.handCount <= 0) {
+            setErrorMessage('این بازیکن هیچ کارتی در دست ندارد (کارت تهدید فقط از دست حریف قابل سرقت است).');
+            return;
+          }
+          // If target only has 1 card in hand, steal it directly without modal for ultra-fast action
+          if (targetP.handCount === 1) {
+            const socket = getSocket();
+            socket.emit('play_card', {
+              roomId,
+              cardId: selectedCardId,
+              targetPlayerId,
+              targetCardChoice: { type: 'hand', handIndex: 0 },
+            });
+            setSelectedCardId(null);
+            return;
+          }
+        }
+
         setTargetSelectModalData({
           actionCard: selectedCard,
           targetPlayer: targetP,
@@ -483,6 +491,7 @@ export default function RoomPage() {
                 onInspectPlayer={(p) => setInspectedPlayer(p)}
                 onInspectCard={(c) => setInspectedCard(c)}
                 activeEffect={activeEffect}
+                onEffectComplete={() => setActiveEffect(null)}
                 tableScale={currentTableScale}
                 maxWidthClass={tableMaxWidthClass}
                 onZoomIn={() => setTableZoomOffset((prev) => Math.min(0.35, prev + 0.08))}
