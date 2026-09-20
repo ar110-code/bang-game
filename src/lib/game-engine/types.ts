@@ -128,6 +128,29 @@ export interface TargetCardChoice {
   handIndex?: number;
 }
 
+export type ActionEffectType =
+  | 'bang'
+  | 'missed'
+  | 'beer'
+  | 'gatling'
+  | 'indians'
+  | 'duel'
+  | 'dynamite_explode'
+  | 'barrel_success'
+  | 'cat_balou'
+  | 'panic';
+
+export interface ActionEffect {
+  id: string;
+  type: ActionEffectType;
+  sourcePlayerId?: string;
+  targetPlayerId?: string;
+  sourcePlayerName?: string;
+  targetPlayerName?: string;
+  cardName?: string;
+  timestamp: number;
+}
+
 export interface GameState {
   roomId: string;
   status: 'lobby' | 'playing' | 'game_over';
@@ -141,6 +164,7 @@ export interface GameState {
   winner: Role | null;
   logs: GameLog[];
   revealCountdown?: number | null;
+  lastEffect?: ActionEffect | null;
 }
 
 // Client-safe version (hides other players' hands and secret roles)
@@ -173,5 +197,6 @@ export interface PublicGameState {
   winner: Role | null;
   logs: GameLog[];
   revealCountdown?: number | null;
+  lastEffect?: ActionEffect | null;
 }
 

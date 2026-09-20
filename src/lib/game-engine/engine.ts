@@ -7,11 +7,35 @@ import {
   Role,
   PendingReaction,
   TargetCardChoice,
+  ActionEffect,
+  ActionEffectType,
 } from './types';
 import { CHARACTERS, ROLE_DISTRIBUTION } from './constants';
 import { createDeck, drawCards, performDrawTest, shuffle } from './deck';
 import { canShootTarget, calculateEffectiveDistance } from './distance';
 import { addLog, damagePlayer, handleElimination, checkWinConditions } from './actions';
+
+export function triggerEffect(
+  state: GameState,
+  type: ActionEffectType,
+  sourcePlayerId?: string,
+  targetPlayerId?: string,
+  cardName?: string
+) {
+  const source = sourcePlayerId ? state.players.find((p) => p.id === sourcePlayerId) : undefined;
+  const target = targetPlayerId ? state.players.find((p) => p.id === targetPlayerId) : undefined;
+
+  state.lastEffect = {
+    id: `eff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    type,
+    sourcePlayerId,
+    targetPlayerId,
+    sourcePlayerName: source?.name,
+    targetPlayerName: target?.name,
+    cardName,
+    timestamp: Date.now(),
+  };
+}
 
 export function createInitialState(roomId: string): GameState {
   return {
@@ -25,6 +49,7 @@ export function createInitialState(roomId: string): GameState {
     pendingReaction: null,
     specialDrawPrompt: null,
     winner: null,
+    lastEffect: null,
     logs: [
       {
         id: `init_${Date.now()}`,
@@ -186,6 +211,7 @@ export function startTurn(state: GameState, playerId: string) {
     if (test.success) {
       // BOOM!
       addLog(state, `💥 بومممم! دینامیت منفجر شد! ۳ جان از ${player.name} کم شد. (کارت رو شده: ${test.card.suit} ${test.card.rank})`, 'death');
+      triggerEffect(state, 'dynamite_explode', undefined, player.id, 'dynamite');
       state.discardPile.push(dynamiteCard);
       damagePlayer(state, player.id, 3);
       if (player.isEliminated) {
@@ -355,6 +381,7 @@ function executePlayCard(
       player.bangCountThisTurn += 1;
 
       addLog(state, `🔫 ${player.name} به سمت ${target.name} شلیک کرد! (بنگ!)`, 'attack');
+      triggerEffect(state, 'bang', playerId, targetPlayerId, card.name);
 
       // Check Barrel on target (Jourdonnais innate ability + equipped barrel)
       let barrelSuccesses = 0;
@@ -365,6 +392,7 @@ function executePlayCard(
         const test1 = performDrawTest(state, (c) => c.suit === 'hearts', isLucky);
         if (test1.success) {
           barrelSuccesses += 1;
+          triggerEffect(state, 'barrel_success', target.id, undefined, 'barrel');
           addLog(
             state,
             `🛡️ بشکه ژوقدونه! (${target.name}) کارت دل رو شد (${test1.card.rank} ${test1.card.suit}) - ۱ دفاع موفق!`,
@@ -383,6 +411,7 @@ function executePlayCard(
           const test2 = performDrawTest(state, (c) => c.suit === 'hearts', isLucky);
           if (test2.success) {
             barrelSuccesses += 1;
+            triggerEffect(state, 'barrel_success', target.id, undefined, 'barrel');
             addLog(
               state,
               `🛡️ تست بشکه مجهز ژوقدونه (${target.name}) نیز موفق شد! (${test2.card.rank} ${test2.card.suit}) - ۱ دفاع دیگر!`,
@@ -400,6 +429,7 @@ function executePlayCard(
         const test = performDrawTest(state, (c) => c.suit === 'hearts', isLucky);
         if (test.success) {
           barrelSuccesses += 1;
+          triggerEffect(state, 'barrel_success', target.id, undefined, 'barrel');
           addLog(
             state,
             `🛡️ ${target.name} پشت بشکه سنگر گرفت! (کارت دل رو شد: ${test.card.rank} ${test.card.suit}) - ۱ دفاع موفق!`,
@@ -450,6 +480,7 @@ function executePlayCard(
       state.discardPile.push(card);
       player.currentHp += 1;
       addLog(state, `🍺 ${player.name} یک نوشیدنی خنک نوشید و ۱ جان گرفت.`, 'heal');
+      triggerEffect(state, 'beer', playerId, undefined, 'beer');
       return { success: true };
     }
 
@@ -462,6 +493,7 @@ function executePlayCard(
         }
       });
       addLog(state, `🍻 ${player.name} همه را در سالون به یک دور نوشیدنی مهمان کرد! (+۱ جان به همه)`, 'heal');
+      triggerEffect(state, 'beer', playerId, undefined, 'saloon');
       return { success: true };
     }
 
@@ -525,6 +557,7 @@ function executePlayCard(
       player.hand.splice(cardIndex, 1);
       state.discardPile.push(card);
       addLog(state, `💥 ${player.name} مسلسل گاتلینگ را به کار انداخت و همه را به رگبار بست!`, 'attack');
+      triggerEffect(state, 'gatling', playerId, undefined, 'gatling');
 
       // Find other living players in clockwise order, strictly EXCLUDING the shooter himself!
       const otherLiving: string[] = [];
@@ -555,6 +588,7 @@ function executePlayCard(
       player.hand.splice(cardIndex, 1);
       state.discardPile.push(card);
       addLog(state, `🏹 حمله سرخ‌پوست‌ها به شهر! همه حریفان باید با شلیک متقابل (بنگ!) دفاع کنند!`, 'attack');
+      triggerEffect(state, 'indians', playerId, undefined, 'indians');
 
       // Find other living players in clockwise order, strictly EXCLUDING the player who played it!
       const otherLiving: string[] = [];
@@ -591,6 +625,7 @@ function executePlayCard(
       player.hand.splice(cardIndex, 1);
       state.discardPile.push(card);
       addLog(state, `⚔️ ${player.name}، ${target.name} را به دوئل مرگبار فراخواند!`, 'attack');
+      triggerEffect(state, 'duel', playerId, targetPlayerId, 'duel');
 
       state.pendingReaction = {
         id: `react_${Date.now()}`,
@@ -622,6 +657,7 @@ function executePlayCard(
 
       player.hand.splice(cardIndex, 1);
       state.discardPile.push(card);
+      triggerEffect(state, 'cat_balou', playerId, targetPlayerId, 'cat_balou');
 
       if (targetCardChoice?.type === 'equipment' && targetCardChoice.equipmentKey) {
         const discarded = target.equipment[targetCardChoice.equipmentKey];
@@ -691,6 +727,7 @@ function executePlayCard(
       const stolen = target.hand.splice(chosenIdx, 1)[0];
       player.hand.push(stolen);
       addLog(state, `💰 تهدید! ${player.name} ۱ کارت از دست ${target.name} ربود و به دست خود اضافه کرد!`, 'attack');
+      triggerEffect(state, 'panic', playerId, targetPlayerId, 'panic');
       checkSuzyLafayette(state, target);
       checkAndAutoEquipDynamite(state, player);
 
@@ -838,6 +875,7 @@ export function respondToReaction(
     if (pending.type === 'bang') {
       pending.missedPlayed += 1;
       addLog(state, `💨 ${player.name} کارت زپلشک! انداخت!`, 'defense');
+      triggerEffect(state, 'missed', player.id, undefined, 'missed');
 
       if (pending.missedPlayed >= pending.missedNeeded) {
         // Attack completely avoided
@@ -848,12 +886,14 @@ export function respondToReaction(
 
     if (pending.type === 'gatling') {
       addLog(state, `💨 ${player.name} با کارت زپلشک! از گلوله‌های مسلسل جاخالی داد!`, 'defense');
+      triggerEffect(state, 'missed', player.id, undefined, 'missed');
       advanceReactionQueue(state);
       return { success: true };
     }
 
     if (pending.type === 'indians') {
       addLog(state, `🏹 ${player.name} با شلیک متقابل سرخ‌پوست‌ها را عقب راند!`, 'defense');
+      triggerEffect(state, 'bang', player.id, undefined, 'bang');
       advanceReactionQueue(state);
       return { success: true };
     }
@@ -868,6 +908,7 @@ export function respondToReaction(
       pending.duelTurnPlayerId = nextDuelPlayer;
       const nextP = state.players.find((p) => p.id === nextDuelPlayer);
       addLog(state, `⚔️ ${player.name} شلیک کرد! نوبت ${nextP?.name} است که در دوئل پاسخ دهد!`, 'attack');
+      triggerEffect(state, 'bang', player.id, nextDuelPlayer, 'bang');
       return { success: true };
     }
   }
@@ -1297,5 +1338,6 @@ export function sanitizeGameStateForPlayer(
     winner: state.winner,
     revealCountdown: state.revealCountdown ?? null,
     logs: state.logs,
+    lastEffect: state.lastEffect ?? null,
   };
 }

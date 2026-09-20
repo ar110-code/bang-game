@@ -38,6 +38,10 @@ export function setupSocketHandlers(io: Server) {
       }
     }
 
+    if (state.lastEffect) {
+      io.to(roomId).emit('action_effect', state.lastEffect);
+    }
+
     // Check if a Bot needs to take an action with a safe guarded timer
     let botTargetId: string | null = null;
     if (state.status === 'playing' && (!state.revealCountdown || state.revealCountdown <= 0)) {

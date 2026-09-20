@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getSocket } from '@/lib/socket/client';
-import { PublicGameState, PublicPlayer, Card, TargetCardChoice } from '@/lib/game-engine/types';
+import { PublicGameState, PublicPlayer, Card, TargetCardChoice, ActionEffect } from '@/lib/game-engine/types';
 import { LobbyRoom } from '@/components/lobby/LobbyRoom';
 import { WesternTable } from '@/components/game/WesternTable';
 import { HandCards } from '@/components/game/HandCards';
@@ -16,7 +16,8 @@ import { CardDetailModal } from '@/components/game/CardDetailModal';
 import { SpecialDrawModal } from '@/components/game/SpecialDrawModal';
 import { TargetCardSelectModal } from '@/components/game/TargetCardSelectModal';
 import { BrandLogo } from '@/components/ui/BrandLogo';
-import { soundEngine } from '@/lib/sound/soundEffects';
+import { ActionAnimationOverlay } from '@/components/game/ActionAnimationOverlay';
+import { soundEngine } from '@/lib/audio/soundEffects';
 
 export default function RoomPage() {
   const params = useParams();
@@ -28,7 +29,8 @@ export default function RoomPage() {
   const [nameInput, setNameInput] = useState('');
   const [gameState, setGameState] = useState<PublicGameState | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [activeEffect, setActiveEffect] = useState<ActionEffect | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(!soundEngine.isMuted());
 
   // Selected card in hand for targeting
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -99,10 +101,15 @@ export default function RoomPage() {
       setTimeout(() => setErrorMessage(null), 4000);
     });
 
+    socket.on('action_effect', (eff: ActionEffect) => {
+      setActiveEffect(eff);
+    });
+
     return () => {
       socket.off('connect', emitJoin);
       socket.off('game_state');
       socket.off('error_message');
+      socket.off('action_effect');
     };
   }, [playerName, roomId]);
 
@@ -145,8 +152,8 @@ export default function RoomPage() {
   };
 
   const handleToggleSound = () => {
-    soundEngine.enabled = !soundEnabled;
-    setSoundEnabled(!soundEnabled);
+    const isMuted = soundEngine.toggleMute();
+    setSoundEnabled(!isMuted);
   };
 
   const myPlayer = gameState?.myPlayer || null;
@@ -293,6 +300,9 @@ export default function RoomPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-saloon-950 text-saloon-100 relative selection:bg-amber-600">
+      {/* Animated Card Action Visuals & Procedural Western Audio Overlay */}
+      <ActionAnimationOverlay effect={activeEffect || gameState.lastEffect || null} />
+
       {/* Top Navigation Bar */}
       <header className="w-full bg-saloon-900/90 border-b border-saloon-800 px-4 py-2 flex items-center justify-between z-20 backdrop-blur-md">
         <div className="flex items-center gap-3">
