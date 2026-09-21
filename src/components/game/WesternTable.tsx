@@ -153,7 +153,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
       <div
         className={`relative w-full ${
           isMobile
-            ? 'max-w-[340px] aspect-[9/13] max-h-[490px]'
+            ? 'max-w-[340px] aspect-[9/13] max-h-[410px]'
             : `${maxWidthClass || 'max-w-5xl'} h-full min-h-[300px] sm:min-h-[520px] max-h-full`
         } flex items-center justify-center transition-all duration-300 origin-center`}
         style={{
@@ -164,7 +164,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
         <div
           className={`absolute ${
             isMobile
-              ? 'inset-1 rounded-[85px] border-[10px]'
+              ? 'inset-1.5 rounded-[80px] border-[8px]'
               : 'inset-2 sm:inset-10 rounded-[60px] sm:rounded-[200px] border-[8px] sm:border-[22px]'
           } western-felt border-[#361f14] outline outline-2 sm:outline-4 outline-amber-950/80 shadow-[inset_0_0_80px_rgba(0,0,0,0.85),0_25px_60px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden z-0`}
         >
@@ -172,7 +172,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
           <div
             className={`absolute ${
               isMobile
-                ? 'inset-2 rounded-[75px]'
+                ? 'inset-2.5 rounded-[72px]'
                 : 'inset-4 sm:inset-10 rounded-[50px] sm:rounded-[180px]'
             } border border-emerald-500/10 pointer-events-none`}
           />
@@ -180,16 +180,16 @@ export const WesternTable: React.FC<WesternTableProps> = ({
           {/* Table Center Features */}
           <div
             className={`${
-              isMobile ? 'flex flex-col gap-2' : 'flex flex-row items-center gap-3 sm:gap-12'
+              isMobile ? 'flex flex-col gap-1.5' : 'flex flex-row items-center gap-3 sm:gap-12'
             } items-center justify-center z-10 select-none`}
           >
             {/* Draw Deck Stack */}
             <div className="flex flex-col items-center">
-              <div className="relative w-10 sm:w-20 aspect-[2/3] bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950 border-2 border-amber-600/70 rounded-lg sm:rounded-xl shadow-2xl flex flex-col items-center justify-center p-1 sm:p-2 text-center transform -rotate-1 hover:rotate-0 transition-transform">
+              <div className="relative w-9 sm:w-20 aspect-[2/3] bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950 border-2 border-amber-600/70 rounded-lg sm:rounded-xl shadow-2xl flex flex-col items-center justify-center p-0.5 sm:p-2 text-center transform -rotate-1 hover:rotate-0 transition-transform">
                 <div className="absolute -top-1 -right-1 w-full h-full border border-amber-500/30 rounded-lg sm:rounded-xl bg-amber-950/40 -z-10 transform rotate-2" />
-                <span className="text-sm sm:text-2xl mb-0.5 sm:mb-1">🃏</span>
-                <span className="text-[7px] sm:text-[10px] font-black text-amber-200">مخزن</span>
-                <span className="text-[8px] sm:text-xs font-bold text-amber-400">
+                <span className="text-xs sm:text-2xl mb-0.5 sm:mb-1">🃏</span>
+                <span className="text-[6.5px] sm:text-[10px] font-black text-amber-200">مخزن</span>
+                <span className="text-[7.5px] sm:text-xs font-bold text-amber-400">
                   {gameState.deckCount}
                 </span>
               </div>
@@ -214,14 +214,14 @@ export const WesternTable: React.FC<WesternTableProps> = ({
                   onClick={() => onInspectCard?.(gameState.topDiscard!)}
                   title="کلیک برای مشاهده توضیحات کامل کارت"
                 >
-                  <CardComponent card={gameState.topDiscard} size="sm" isPlayable={false} />
+                  <CardComponent card={gameState.topDiscard} size="xs" isPlayable={false} />
                 </div>
               ) : (
-                <div className="w-10 sm:w-20 aspect-[2/3] border-2 border-dashed border-emerald-800/40 rounded-lg sm:rounded-xl flex items-center justify-center text-[7px] sm:text-[10px] text-emerald-300/40 text-center p-0.5 sm:p-1">
+                <div className="w-9 sm:w-20 aspect-[2/3] border-2 border-dashed border-emerald-800/40 rounded-lg sm:rounded-xl flex items-center justify-center text-[6.5px] sm:text-[10px] text-emerald-300/40 text-center p-0.5 sm:p-1">
                   کارت‌های سوخته
                 </div>
               )}
-              <span className="text-[7px] sm:text-[10px] text-emerald-400/60 mt-0.5 sm:mt-1 font-semibold">
+              <span className="text-[6.5px] sm:text-[10px] text-emerald-400/60 mt-0.5 sm:mt-1 font-semibold">
                 سوخته
               </span>
             </div>
@@ -237,12 +237,12 @@ export const WesternTable: React.FC<WesternTableProps> = ({
 
           // Safe Elliptical radii percentage from center:
           // On mobile portrait (vertical table):
-          // rx is narrower (35%) to fit within phone screen bounds
-          // ry is taller (41%) to utilize the vertical screen height
+          // rx is 34% to fit within phone screen bounds
+          // ry is 36% to utilize height without cutting off top/bottom players
           // On desktop (horizontal table):
           // rx is 36%, ry is 30%
-          const rx = isMobile ? 35 : 36;
-          const ry = isMobile ? 41 : 30;
+          const rx = isMobile ? 34 : 36;
+          const ry = isMobile ? 36 : 30;
 
           const leftPercent = 50 + rx * Math.cos(angle);
           const topPercent = 50 + ry * Math.sin(angle);

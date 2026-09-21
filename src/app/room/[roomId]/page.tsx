@@ -130,10 +130,16 @@ export default function RoomPage() {
   const baseTableScale = useMemo(() => {
     if (isMobile) {
       if (isMobilePortrait) {
-        if (typeof window !== 'undefined' && window.innerWidth < 375) {
-          return 0.88;
+        if (typeof window !== 'undefined') {
+          if (window.innerHeight < 680) {
+            return 0.82; // Phone screen with browser bars (like iPhone SE/8/Safari)
+          }
+          if (window.innerWidth < 375) {
+            return 0.86;
+          }
+          return 0.92;
         }
-        return 0.96;
+        return 0.86;
       }
       return 0.76;
     }
@@ -568,18 +574,18 @@ export default function RoomPage() {
   return (
     <div className="h-screen h-[100dvh] max-h-[100dvh] w-full flex flex-col bg-saloon-950 text-saloon-100 relative selection:bg-amber-600 overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="w-full bg-saloon-900/90 border-b border-saloon-800 px-2 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between z-20 backdrop-blur-md shrink-0">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <header className="w-full bg-saloon-900/90 border-b border-saloon-800 px-1.5 sm:px-4 py-1 sm:py-2 flex items-center justify-between z-20 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <button
             onClick={() => router.push('/')}
-            className="text-xs text-zinc-400 hover:text-amber-300 flex items-center gap-1 transition-colors"
+            className="text-[11px] sm:text-xs text-zinc-400 hover:text-amber-300 flex items-center gap-1 transition-colors"
           >
             <span>← خروج</span>
           </button>
-          <div className="h-4 w-[1px] bg-saloon-700" />
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-400">اتاق:</span>
-            <span className="text-xs font-black text-amber-400 font-mono tracking-wider">
+          <div className="h-3.5 w-[1px] bg-saloon-700" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] sm:text-xs text-zinc-400">اتاق:</span>
+            <span className="text-[11px] sm:text-xs font-black text-amber-400 font-mono tracking-wider">
               {roomId}
             </span>
           </div>
@@ -591,11 +597,11 @@ export default function RoomPage() {
         </div>
 
         {/* Audio Toggle & User Name & Role Card Button */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           {myPlayer && gameState.status === 'playing' && (
             <button
               onClick={() => setRevealModalOpen(true)}
-              className="text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2.5 py-1 rounded-xl transition-all shadow-sm flex items-center gap-1 active:scale-95"
+              className="text-[11px] sm:text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl transition-all shadow-sm flex items-center gap-1 active:scale-95"
               title="مشاهده مشخصات نقش، کاراکتر و قابلیت شما"
             >
               <span>📜</span>
@@ -607,7 +613,7 @@ export default function RoomPage() {
           {gameState.status === 'playing' && (
             <button
               onClick={() => setLogModalOpen(true)}
-              className="text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2.5 py-1 rounded-xl transition-all shadow-sm flex items-center gap-1 active:scale-95 lg:hidden"
+              className="text-[11px] sm:text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl transition-all shadow-sm flex items-center gap-1 active:scale-95 lg:hidden"
               title="مشاهده وقایع‌نگار و رخدادهای بازی"
             >
               <span>📜</span>
@@ -632,24 +638,24 @@ export default function RoomPage() {
               }
               setChatUnreadCount(0);
             }}
-            className="text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2.5 py-1 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95 relative"
+            className="text-[11px] sm:text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl transition-all shadow-sm flex items-center gap-1 active:scale-95 relative"
             title="چت متنی و گفتگوی صوتی سالون وسترن"
           >
             <span>💬</span>
             <span className="hidden sm:inline">چت و ویس</span>
             <span className="sm:hidden">چت</span>
             {voiceController.isConnected && (
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
             )}
             {chatUnreadCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-black flex items-center justify-center animate-bounce shadow">
+              <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-red-600 text-white text-[8px] sm:text-[9px] font-black flex items-center justify-center animate-bounce shadow">
                 {chatUnreadCount > 9 ? '+۹' : chatUnreadCount}
               </span>
             )}
           </button>
           <button
             onClick={handleToggleSound}
-            className="text-xs text-zinc-300 hover:text-amber-300 bg-saloon-800 border border-saloon-700 px-2.5 py-1 rounded-xl transition-all"
+            className="text-[11px] sm:text-xs text-zinc-300 hover:text-amber-300 bg-saloon-800 border border-saloon-700 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl transition-all"
             title={soundEnabled ? 'صدا روشن' : 'صدا خاموش'}
           >
             {soundEnabled ? '🔊 صدا' : '🔇 بی‌صدا'}

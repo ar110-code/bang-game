@@ -6,7 +6,8 @@ interface CardComponentProps {
   isSelected?: boolean;
   isPlayable?: boolean;
   onClick?: () => void;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  scale?: number;
   showDetailsOnSelect?: boolean;
 }
 
@@ -41,6 +42,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
   isPlayable = true,
   onClick,
   size = 'md',
+  scale,
   showDetailsOnSelect = true,
 }) => {
   const [imgError, setImgError] = useState(false);
@@ -95,17 +97,24 @@ export const CardComponent: React.FC<CardComponentProps> = ({
   const rankNumber = getRankNumber(card.rank);
   const isBrown = card.border === 'brown';
 
+  // Explicit, robust width classes that never break flex layouts
   const sizeClasses =
-    size === 'sm'
-      ? 'w-18 sm:w-22 text-[9px] sm:text-[10px] p-1'
+    size === 'xs'
+      ? 'w-[54px] sm:w-[64px] text-[8px] sm:text-[9px] p-0.5 sm:p-1'
+      : size === 'sm'
+      ? 'w-[68px] sm:w-[84px] text-[9px] sm:text-[10px] p-1'
       : size === 'lg'
-      ? 'w-44 sm:w-56 text-xs sm:text-sm p-2 sm:p-2.5'
-      : 'w-20 sm:w-28 text-[10px] sm:text-xs p-1 sm:p-1.5';
+      ? 'w-[120px] sm:w-[150px] text-xs sm:text-sm p-1.5 sm:p-2'
+      : 'w-[84px] sm:w-[104px] text-[10px] sm:text-xs p-1 sm:p-1.5';
+
+  const basePxWidth = size === 'xs' ? 54 : size === 'sm' ? 68 : size === 'lg' ? 120 : 84;
+  const customWidthStyle = scale ? { width: `${Math.round(basePxWidth * scale)}px` } : undefined;
 
   return (
     <div
       onClick={isPlayable ? onClick : undefined}
-      className={`relative select-none aspect-[2/3] rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200 group ${sizeClasses} ${
+      style={customWidthStyle}
+      className={`relative select-none aspect-[2/3] rounded-xl sm:rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200 group ${sizeClasses} ${
         card.name === 'barrel'
           ? 'border-2 border-sky-400 shadow-[0_0_16px_rgba(56,189,248,0.45)] ring-1 ring-sky-300/60'
           : card.name === 'volcanic'
@@ -117,8 +126,8 @@ export const CardComponent: React.FC<CardComponentProps> = ({
           : 'border-2 border-sky-500/90 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
       } ${
         isSelected
-          ? 'ring-4 ring-amber-400 -translate-y-4 shadow-2xl scale-105 z-30'
-          : 'hover:-translate-y-2 hover:shadow-2xl'
+          ? 'ring-3 sm:ring-4 ring-amber-400 -translate-y-2 sm:-translate-y-4 shadow-2xl scale-105 z-30'
+          : 'hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-xl'
       } ${isPlayable ? 'cursor-pointer' : 'opacity-85'}`}
     >
       {/* 2:3 Full Background Image Covering the Entire Card */}
