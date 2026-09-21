@@ -185,11 +185,11 @@ export const WesternTable: React.FC<WesternTableProps> = ({
           >
             {/* Draw Deck Stack */}
             <div className="flex flex-col items-center">
-              <div className="relative w-9 sm:w-20 aspect-[2/3] bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950 border-2 border-amber-600/70 rounded-lg sm:rounded-xl shadow-2xl flex flex-col items-center justify-center p-0.5 sm:p-2 text-center transform -rotate-1 hover:rotate-0 transition-transform">
+              <div className="relative w-[54px] sm:w-[72px] h-[81px] sm:h-[108px] bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950 border-2 border-amber-600/70 rounded-lg sm:rounded-xl shadow-2xl flex flex-col items-center justify-center p-0.5 sm:p-2 text-center transform -rotate-1 hover:rotate-0 transition-transform">
                 <div className="absolute -top-1 -right-1 w-full h-full border border-amber-500/30 rounded-lg sm:rounded-xl bg-amber-950/40 -z-10 transform rotate-2" />
-                <span className="text-xs sm:text-2xl mb-0.5 sm:mb-1">🃏</span>
-                <span className="text-[6.5px] sm:text-[10px] font-black text-amber-200">مخزن</span>
-                <span className="text-[7.5px] sm:text-xs font-bold text-amber-400">
+                <span className="text-sm sm:text-2xl mb-0.5 sm:mb-1">🃏</span>
+                <span className="text-[7px] sm:text-[10px] font-black text-amber-200">مخزن</span>
+                <span className="text-[8px] sm:text-xs font-bold text-amber-400">
                   {gameState.deckCount}
                 </span>
               </div>
@@ -214,14 +214,19 @@ export const WesternTable: React.FC<WesternTableProps> = ({
                   onClick={() => onInspectCard?.(gameState.topDiscard!)}
                   title="کلیک برای مشاهده توضیحات کامل کارت"
                 >
-                  <CardComponent card={gameState.topDiscard} size="xs" isPlayable={false} />
+                  <CardComponent
+                    card={gameState.topDiscard}
+                    size={isMobile ? 'xs' : 'sm'}
+                    isPlayable={false}
+                    showDetailsOnSelect={false}
+                  />
                 </div>
               ) : (
-                <div className="w-9 sm:w-20 aspect-[2/3] border-2 border-dashed border-emerald-800/40 rounded-lg sm:rounded-xl flex items-center justify-center text-[6.5px] sm:text-[10px] text-emerald-300/40 text-center p-0.5 sm:p-1">
+                <div className="w-[54px] sm:w-[72px] h-[81px] sm:h-[108px] border-2 border-dashed border-emerald-800/40 rounded-lg sm:rounded-xl flex items-center justify-center text-[7px] sm:text-[10px] text-emerald-300/40 text-center p-0.5 sm:p-1">
                   کارت‌های سوخته
                 </div>
               )}
-              <span className="text-[6.5px] sm:text-[10px] text-emerald-400/60 mt-0.5 sm:mt-1 font-semibold">
+              <span className="text-[7px] sm:text-[10px] text-emerald-400/60 mt-0.5 sm:mt-1 font-semibold">
                 سوخته
               </span>
             </div>

@@ -96,7 +96,7 @@ export const TargetCardSelectModal: React.FC<TargetCardSelectModalProps> = ({
                     }
                     className="cursor-pointer group flex flex-col items-center hover:scale-105 transition-transform"
                   >
-                    <CardComponent card={item.card} size="sm" />
+                    <CardComponent card={item.card} size="sm" showDetailsOnSelect={false} />
                     <span className="text-[10px] text-amber-400 font-bold mt-1 bg-saloon-900 border border-amber-600/40 px-2 py-0.5 rounded-full group-hover:bg-amber-600 group-hover:text-black transition-colors">
                       سوزاندن این کارت
                     </span>
@@ -133,7 +133,7 @@ export const TargetCardSelectModal: React.FC<TargetCardSelectModalProps> = ({
                 <button
                   key={idx}
                   onClick={() => onConfirm({ type: 'hand', handIndex: idx })}
-                  className="group relative w-16 h-24 sm:w-20 sm:h-28 rounded-xl bg-gradient-to-b from-amber-950 via-stone-900 to-amber-950 border-2 border-amber-700/60 hover:border-amber-400 hover:scale-105 active:scale-95 transition-all shadow-md flex flex-col items-center justify-center p-1.5 cursor-pointer text-center"
+                  className="group relative w-[72px] h-[108px] rounded-xl bg-gradient-to-b from-amber-950 via-stone-900 to-amber-950 border-2 border-amber-700/60 hover:border-amber-400 hover:scale-105 active:scale-95 transition-all shadow-md flex flex-col items-center justify-center p-1.5 cursor-pointer text-center shrink-0"
                 >
                   {/* Western pattern watermark */}
                   <div className="w-8 h-8 rounded-full border border-amber-600/40 flex items-center justify-center text-sm mb-1 group-hover:bg-amber-600/20 transition-colors">
@@ -141,7 +141,7 @@ export const TargetCardSelectModal: React.FC<TargetCardSelectModalProps> = ({
                   </div>
                   <span className="text-[10px] font-bold text-amber-200">کارت #{idx + 1}</span>
                   <span className="text-[9px] text-zinc-400 group-hover:text-amber-300 mt-1">
-                    {isPanic ? 'سرقت این کارت' : 'سوزاندن'}
+                    {isPanic ? 'سرقت' : 'سوزاندن'}
                   </span>
                 </button>
               ))}

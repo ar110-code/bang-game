@@ -413,43 +413,59 @@ export const HandCards: React.FC<HandCardsProps> = ({
             دست شما خالی است! در نوبت بعدی کارت می‌کشید.
           </div>
         ) : (
-          cards.map((card) => {
-            const isSelected = isSidHealingMode
-              ? sidSelectedCardIds.includes(card.id)
-              : card.id === selectedCardId;
+          (() => {
+            const currentBaseWidth = cardSize === 'xs' ? 54 : cardSize === 'sm' ? 72 : cardSize === 'lg' ? 132 : 88;
+            const currentBaseHeight = cardSize === 'xs' ? 81 : cardSize === 'sm' ? 108 : cardSize === 'lg' ? 198 : 132;
+            const scaledWidth = Math.round(currentBaseWidth * (cardZoom / 100));
+            const scaledHeight = Math.round(currentBaseHeight * (cardZoom / 100));
 
-            return (
-              <div
-                key={card.id}
-                className={`flex-shrink-0 transition-all duration-200 ${
-                  isEffectActive ? 'pointer-events-none opacity-50 grayscale-[25%]' : ''
-                }`}
-              >
-                <CardComponent
-                  card={card}
-                  size={cardSize}
-                  scale={cardZoom / 100}
-                  isSelected={isSelected}
-                  isPlayable={!isEffectActive && (isMyTurn || isDiscardPhase || isSidHealingMode)}
-                  onClick={() => {
-                    if (isEffectActive) return;
-                    if (isSidHealingMode) {
-                      toggleSidCard(card.id);
-                    } else if (isDiscardPhase) {
-                      onDiscardCard(card.id);
-                    } else {
-                      // Clicking on already selected card can toggle or keep selected
-                      if (selectedCardId === card.id) {
-                        onCancelSelection();
-                      } else {
-                        onSelectCard(card);
-                      }
-                    }
+            return cards.map((card) => {
+              const isSelected = isSidHealingMode
+                ? sidSelectedCardIds.includes(card.id)
+                : card.id === selectedCardId;
+
+              return (
+                <div
+                  key={card.id}
+                  style={{
+                    width: `${scaledWidth}px`,
+                    minWidth: `${scaledWidth}px`,
+                    maxWidth: `${scaledWidth}px`,
+                    height: `${scaledHeight}px`,
+                    minHeight: `${scaledHeight}px`,
+                    maxHeight: `${scaledHeight}px`,
                   }}
-                />
-              </div>
-            );
-          })
+                  className={`flex-shrink-0 transition-all duration-200 ${
+                    isEffectActive ? 'pointer-events-none opacity-50 grayscale-[25%]' : ''
+                  }`}
+                >
+                  <CardComponent
+                    card={card}
+                    size={cardSize}
+                    scale={cardZoom / 100}
+                    isSelected={isSelected}
+                    isPlayable={!isEffectActive && (isMyTurn || isDiscardPhase || isSidHealingMode)}
+                    showDetailsOnSelect={false}
+                    onClick={() => {
+                      if (isEffectActive) return;
+                      if (isSidHealingMode) {
+                        toggleSidCard(card.id);
+                      } else if (isDiscardPhase) {
+                        onDiscardCard(card.id);
+                      } else {
+                        // Clicking on already selected card can toggle or keep selected
+                        if (selectedCardId === card.id) {
+                          onCancelSelection();
+                        } else {
+                          onSelectCard(card);
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              );
+            });
+          })()
         )}
       </div>
     </div>

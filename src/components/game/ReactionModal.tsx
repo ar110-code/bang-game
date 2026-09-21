@@ -55,6 +55,7 @@ export const ReactionModal: React.FC<ReactionModalProps> = ({
                     <CardComponent
                       card={card}
                       size="sm"
+                      showDetailsOnSelect={false}
                       onClick={() => onRespond('play', card.id)}
                     />
                   </div>
@@ -157,6 +158,7 @@ export const ReactionModal: React.FC<ReactionModalProps> = ({
                   <CardComponent
                     card={card}
                     size="sm"
+                    showDetailsOnSelect={false}
                     onClick={() => onRespond('play', card.id)}
                   />
                 </div>

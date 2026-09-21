@@ -43,7 +43,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
   onClick,
   size = 'md',
   scale,
-  showDetailsOnSelect = true,
+  showDetailsOnSelect = false,
 }) => {
   const [imgError, setImgError] = useState(false);
 
@@ -97,24 +97,32 @@ export const CardComponent: React.FC<CardComponentProps> = ({
   const rankNumber = getRankNumber(card.rank);
   const isBrown = card.border === 'brown';
 
-  // Explicit, robust width classes that never break flex layouts
-  const sizeClasses =
-    size === 'xs'
-      ? 'w-[54px] sm:w-[64px] text-[8px] sm:text-[9px] p-0.5 sm:p-1'
-      : size === 'sm'
-      ? 'w-[68px] sm:w-[84px] text-[9px] sm:text-[10px] p-1'
-      : size === 'lg'
-      ? 'w-[120px] sm:w-[150px] text-xs sm:text-sm p-1.5 sm:p-2'
-      : 'w-[84px] sm:w-[104px] text-[10px] sm:text-xs p-1 sm:p-1.5';
+  // Standardized 2:3 card dimensions:
+  // xs: 54x81px (Table discard on mobile, compact slots)
+  // sm: 72x108px (Modals, table discard on desktop, small hand)
+  // md: 88x132px (Default hand cards)
+  // lg: 132x198px (Inspect card modal)
+  const baseWidth = size === 'xs' ? 54 : size === 'sm' ? 72 : size === 'lg' ? 132 : 88;
+  const baseHeight = size === 'xs' ? 81 : size === 'sm' ? 108 : size === 'lg' ? 198 : 132;
+  
+  const finalWidth = scale ? Math.round(baseWidth * scale) : baseWidth;
+  const finalHeight = scale ? Math.round(baseHeight * scale) : baseHeight;
 
-  const basePxWidth = size === 'xs' ? 54 : size === 'sm' ? 68 : size === 'lg' ? 120 : 84;
-  const customWidthStyle = scale ? { width: `${Math.round(basePxWidth * scale)}px` } : undefined;
+  const cardStyle: React.CSSProperties = {
+    width: `${finalWidth}px`,
+    minWidth: `${finalWidth}px`,
+    maxWidth: `${finalWidth}px`,
+    height: `${finalHeight}px`,
+    minHeight: `${finalHeight}px`,
+    maxHeight: `${finalHeight}px`,
+    boxSizing: 'border-box',
+  };
 
   return (
     <div
       onClick={isPlayable ? onClick : undefined}
-      style={customWidthStyle}
-      className={`relative select-none aspect-[2/3] rounded-xl sm:rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200 group ${sizeClasses} ${
+      style={cardStyle}
+      className={`relative select-none rounded-xl sm:rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-200 group flex-shrink-0 p-1 sm:p-1.5 ${
         card.name === 'barrel'
           ? 'border-2 border-sky-400 shadow-[0_0_16px_rgba(56,189,248,0.45)] ring-1 ring-sky-300/60'
           : card.name === 'volcanic'
@@ -126,12 +134,12 @@ export const CardComponent: React.FC<CardComponentProps> = ({
           : 'border-2 border-sky-500/90 shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
       } ${
         isSelected
-          ? 'ring-3 sm:ring-4 ring-amber-400 -translate-y-2 sm:-translate-y-4 shadow-2xl scale-105 z-30'
-          : 'hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-xl'
+          ? 'ring-3 sm:ring-4 ring-amber-400 -translate-y-2 sm:-translate-y-3 shadow-2xl scale-[1.03] z-30'
+          : 'hover:-translate-y-1 hover:shadow-xl'
       } ${isPlayable ? 'cursor-pointer' : 'opacity-85'}`}
     >
       {/* 2:3 Full Background Image Covering the Entire Card */}
-      <div className="absolute inset-0 w-full h-full z-0 bg-saloon-950 overflow-hidden">
+      <div className="absolute inset-0 w-full h-full z-0 bg-saloon-950 overflow-hidden pointer-events-none">
         {!imgError && CARD_ART_MAP[card.name] ? (
           <img
             src={CARD_ART_MAP[card.name]}
@@ -173,7 +181,7 @@ export const CardComponent: React.FC<CardComponentProps> = ({
 
       {/* Top Box: Title and Range / Ability Badge */}
       <div
-        className={`relative z-10 rounded-xl px-2 py-0.5 flex items-center justify-between gap-1 shadow-md backdrop-blur-md ${
+        className={`relative z-10 rounded-lg px-1.5 py-0.5 flex items-center justify-between gap-1 shadow-md backdrop-blur-md w-full max-w-full min-w-0 overflow-hidden ${
           card.name === 'barrel'
             ? 'bg-sky-950/90 border border-sky-400/60'
             : card.name === 'volcanic'
@@ -185,38 +193,40 @@ export const CardComponent: React.FC<CardComponentProps> = ({
             : 'bg-blue-950/80 border border-blue-500/40'
         }`}
       >
-        <span className="font-black text-amber-200 text-[11px] sm:text-xs truncate leading-tight flex items-center gap-1">
-          {card.name === 'barrel' && <span className="text-sky-300">🛡️</span>}
-          {card.name === 'volcanic' && <span className="text-amber-400 animate-pulse">⚡</span>}
-          {card.range && card.name !== 'volcanic' && <span className="text-amber-400">🔫</span>}
-          <span>{card.titleFa}</span>
+        <span className="font-black text-amber-200 text-[9px] sm:text-[10px] truncate leading-tight flex items-center gap-0.5 min-w-0">
+          {card.name === 'barrel' && <span className="text-sky-300 shrink-0">🛡️</span>}
+          {card.name === 'volcanic' && <span className="text-amber-400 shrink-0 animate-pulse">⚡</span>}
+          {card.range && card.name !== 'volcanic' && <span className="text-amber-400 shrink-0">🔫</span>}
+          <span className="truncate">{card.titleFa}</span>
         </span>
         
-        {card.name === 'volcanic' ? (
-          <span className="bg-gradient-to-r from-red-600 via-amber-500 to-red-600 text-white px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black leading-none shrink-0 shadow animate-pulse">
-            تیر نامحدود
-          </span>
-        ) : card.range ? (
-          <span className="bg-gradient-to-r from-amber-400 to-yellow-300 text-saloon-950 px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black leading-none shrink-0 shadow">
-            برد {card.range}
-          </span>
-        ) : card.name === 'barrel' ? (
-          <span className="bg-gradient-to-r from-sky-400 to-blue-600 text-white px-1.5 py-0.2 rounded text-[8px] sm:text-[9px] font-black leading-none shrink-0 shadow">
-            تست دل ♥
-          </span>
-        ) : null}
+        {size !== 'xs' && finalWidth >= 68 && (
+          card.name === 'volcanic' ? (
+            <span className="bg-gradient-to-r from-red-600 via-amber-500 to-red-600 text-white px-1 py-0.2 rounded text-[7px] sm:text-[8px] font-black leading-none shrink-0 shadow animate-pulse whitespace-nowrap">
+              نامحدود
+            </span>
+          ) : card.range ? (
+            <span className="bg-gradient-to-r from-amber-400 to-yellow-300 text-saloon-950 px-1 py-0.2 rounded text-[7px] sm:text-[8px] font-black leading-none shrink-0 shadow whitespace-nowrap">
+              برد {card.range}
+            </span>
+          ) : card.name === 'barrel' ? (
+            <span className="bg-gradient-to-r from-sky-400 to-blue-600 text-white px-1 py-0.2 rounded text-[7px] sm:text-[8px] font-black leading-none shrink-0 shadow whitespace-nowrap">
+              دل ♥
+            </span>
+          ) : null
+        )}
       </div>
 
       {/* Bottom Subtle Transparent Description (taking minimal space) */}
-      {size !== 'sm' && !isSelected && (
-        <div className="absolute inset-x-0 bottom-0 pb-1.5 pt-5 pr-1.5 pl-14 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none text-right z-10">
-          <p className="text-[9px] sm:text-[10px] text-zinc-200/95 font-medium truncate leading-tight">
+      {size !== 'xs' && size !== 'sm' && !isSelected && finalWidth >= 84 && (
+        <div className="absolute inset-x-0 bottom-0 pb-1 pt-4 pr-1 pl-12 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none text-right z-10 overflow-hidden">
+          <p className="text-[8px] sm:text-[9px] text-zinc-200/95 font-medium truncate leading-tight">
             {card.name === 'barrel' ? (
-              <span className="text-sky-300 font-bold">🛡️ شانس دفع بنگ با کارت دل ♥</span>
+              <span className="text-sky-300 font-bold">🛡️ شانس دفع با دل ♥</span>
             ) : card.name === 'volcanic' ? (
-              <span className="text-amber-300 font-bold">⚡ شلیک نامحدود بنگ در نوبت (برد ۱)</span>
+              <span className="text-amber-300 font-bold">⚡ شلیک نامحدود (برد ۱)</span>
             ) : card.range ? (
-              <span className="text-amber-200 font-bold">🔫 سلاح با برد شلیک {card.range} فرسنگ</span>
+              <span className="text-amber-200 font-bold">🔫 اسلحه با برد {card.range}</span>
             ) : (
               card.descFa
             )}
@@ -226,16 +236,16 @@ export const CardComponent: React.FC<CardComponentProps> = ({
 
       {/* Bottom-Left Small Suit & Rank Badge (Icon + Number only, e.g. 11 ♥) */}
       <div
-        className={`absolute bottom-1.5 left-1.5 z-20 flex items-center gap-0.5 bg-black/75 backdrop-blur-md px-1.5 py-0.5 rounded-md border border-white/20 text-[10px] sm:text-[11px] font-black shadow-md ${suitData.color}`}
+        className={`absolute bottom-1 left-1 z-20 flex items-center gap-0.5 bg-black/80 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 text-[9px] sm:text-[10px] font-black shadow-md ${suitData.color}`}
         title={`ورق: ${rankNumber} ${suitData.symbol}`}
       >
         <span className="text-zinc-100">{rankNumber}</span>
-        <span className="text-xs leading-none">{suitData.symbol}</span>
+        <span className="text-[10px] leading-none">{suitData.symbol}</span>
       </div>
 
       {/* Full Details Overlay on Card when Clicked/Selected */}
       {showDetailsOnSelect && isSelected && (
-        <div className="absolute inset-0 bg-black/88 backdrop-blur-md rounded-2xl p-2.5 flex flex-col justify-between text-right animate-in fade-in zoom-in-95 duration-150 z-30 border-2 border-amber-400">
+        <div className="absolute inset-0 bg-black/88 backdrop-blur-md rounded-xl sm:rounded-2xl p-2 flex flex-col justify-between text-right animate-in fade-in zoom-in-95 duration-150 z-30 border-2 border-amber-400 overflow-y-auto">
           <div>
             <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1.5">
               <span className="font-black text-xs text-amber-300 flex items-center gap-1">

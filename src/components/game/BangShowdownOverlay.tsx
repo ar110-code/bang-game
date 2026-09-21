@@ -532,6 +532,7 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
                           <CardComponent
                             card={card}
                             size="sm"
+                            showDetailsOnSelect={false}
                             onClick={() => onRespondReaction('play', card.id)}
                           />
                         </div>

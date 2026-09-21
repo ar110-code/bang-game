@@ -70,7 +70,7 @@ export const SpecialDrawModal: React.FC<SpecialDrawModalProps> = ({
                     گزینه ۱: کارت سوخته وسط میز
                   </div>
                   <div className="my-2 transform group-hover:scale-105 transition-transform">
-                    <CardComponent card={topDiscard} size="sm" isPlayable={false} />
+                    <CardComponent card={topDiscard} size="sm" isPlayable={false} showDetailsOnSelect={false} />
                   </div>
                   <div className="text-[11px] text-zinc-300 mb-3">
                     کارت اول: <strong className="text-amber-300">{topDiscard.titleFa}</strong>
@@ -96,12 +96,14 @@ export const SpecialDrawModal: React.FC<SpecialDrawModalProps> = ({
                 <div className="text-xs font-bold text-zinc-200 mb-2">
                   گزینه ۲: کارت‌کشی عادی
                 </div>
-                <div className="my-4 flex items-center justify-center gap-1.5">
-                  <div className="w-14 h-20 bg-gradient-to-b from-amber-950 to-saloon-950 border-2 border-amber-600/70 rounded-xl flex items-center justify-center text-xl shadow-lg -rotate-3">
-                    🃏
+                <div className="my-2 flex items-center justify-center gap-2">
+                  <div className="w-[72px] h-[108px] bg-gradient-to-b from-amber-950 to-saloon-950 border-2 border-amber-600/70 rounded-xl flex flex-col items-center justify-center shadow-lg -rotate-2">
+                    <span className="text-xl mb-1">🃏</span>
+                    <span className="text-[9px] font-bold text-amber-200">مخزن ۱</span>
                   </div>
-                  <div className="w-14 h-20 bg-gradient-to-b from-amber-950 to-saloon-950 border-2 border-amber-600/70 rounded-xl flex items-center justify-center text-xl shadow-lg rotate-3">
-                    🃏
+                  <div className="w-[72px] h-[108px] bg-gradient-to-b from-amber-950 to-saloon-950 border-2 border-amber-600/70 rounded-xl flex flex-col items-center justify-center shadow-lg rotate-2">
+                    <span className="text-xl mb-1">🃏</span>
+                    <span className="text-[9px] font-bold text-amber-200">مخزن ۲</span>
                   </div>
                 </div>
                 <div className="text-[11px] text-zinc-300 mb-3">
@@ -215,7 +217,7 @@ export const SpecialDrawModal: React.FC<SpecialDrawModalProps> = ({
                           : 'border border-transparent'
                       }`}
                     >
-                      <CardComponent card={card} size="sm" isPlayable={false} />
+                      <CardComponent card={card} size="sm" isPlayable={false} showDetailsOnSelect={false} />
                     </div>
 
                     <span
