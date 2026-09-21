@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { getSocket } from '@/lib/socket/client';
 import { VoicePeerState } from '@/lib/game-engine/types';
 
@@ -26,6 +26,7 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
   const remoteAudiosRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -41,6 +42,7 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
 
   // Cleanup helper for an individual peer
   const closePeer = useCallback((socketId: string) => {
+    pendingCandidatesRef.current.delete(socketId);
     const pc = peerConnectionsRef.current.get(socketId);
     if (pc) {
       pc.close();
@@ -50,12 +52,14 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
     if (audio) {
       audio.pause();
       audio.srcObject = null;
-      audio.remove();
+      if (audio.parentNode) {
+        audio.parentNode.removeChild(audio);
+      }
       remoteAudiosRef.current.delete(socketId);
     }
   }, []);
 
-  // Voice Activity Detection loop
+  // Voice Activity Detection loop with speech hold timer
   const startVolumeDetection = (stream: MediaStream) => {
     try {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -71,6 +75,8 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
       microphone.connect(analyser);
 
       const buffer = new Uint8Array(analyser.frequencyBinCount);
+      let lastSpokeTime = 0;
+      let lastEmittedState = false;
 
       const checkVolume = () => {
         if (!analyserRef.current || !localStreamRef.current) return;
@@ -82,8 +88,14 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
         }
         const average = sum / buffer.length;
 
-        const speakingNow = average > 14 && !isMutedRef.current;
-        if (speakingNow !== isSpeakingRef.current) {
+        const now = Date.now();
+        if (average > 13) {
+          lastSpokeTime = now;
+        }
+
+        const speakingNow = (now - lastSpokeTime < 400) && !isMutedRef.current;
+        if (speakingNow !== lastEmittedState) {
+          lastEmittedState = speakingNow;
           setIsSpeaking(speakingNow);
           const socket = getSocket();
           socket.emit('voice_state_update', {
@@ -137,11 +149,16 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
           if (!audio) {
             audio = new Audio();
             audio.autoplay = true;
+            audio.setAttribute('playsinline', 'true');
+            audio.style.display = 'none';
+            document.body.appendChild(audio);
             remoteAudiosRef.current.set(targetSocketId, audio);
           }
           audio.srcObject = remoteStream;
           audio.muted = isDeafenedRef.current;
-          audio.play().catch(() => {});
+          audio.play().catch((err) => {
+            console.warn('Audio play attempt:', err);
+          });
         }
       };
 
@@ -160,8 +177,11 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
   const joinVoice = async () => {
     try {
       setError(null);
+      if (typeof window !== 'undefined' && !window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        throw new Error('دسترسی به میکروفون در وب فقط روی پروتکل امن https یا localhost مجاز است.');
+      }
       if (!navigator?.mediaDevices?.getUserMedia) {
-        throw new Error('مرورگر شما از وب‌آر‌تی‌سی صوتی پشتیبانی نمی‌کند.');
+        throw new Error('مرورگر شما از وب‌آر‌تی‌سی صوتی پشتیبانی نمی‌کند یا دسترسی میکروفون مسدود است.');
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -180,15 +200,15 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
       // Start volume detection
       startVolumeDetection(stream);
 
-      // Emit join to server
+      // Emit join to server with fallback identifiers
       const socket = getSocket();
-      socket.emit('voice_join', { roomId });
+      socket.emit('voice_join', { roomId, playerId: myPlayerId, playerName });
     } catch (err: any) {
       console.error('Voice join error:', err);
       const msg =
         err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError'
-          ? 'دسترسی به میکروفون داده نشد. لطفاً دسترسی میکروفون را در مرورگر مجاز کنید.'
-          : 'خطا در اتصال به ویس‌چت سالون.';
+          ? 'دسترسی به میکروفون داده نشد. لطفاً آیکون قفل کنار آدرس مرورگر را زده و میکروفون را روی Allow بگذارید.'
+          : err?.message || 'خطا در اتصال به ویس‌چت سالون.';
       setError(msg);
       setIsConnected(false);
     }
@@ -332,6 +352,19 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
 
+            // Flush buffered ICE candidates
+            const pending = pendingCandidatesRef.current.get(fromSocketId);
+            if (pending && pending.length > 0) {
+              for (const cand of pending) {
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(cand));
+                } catch (e) {
+                  console.warn('Error applying buffered candidate:', e);
+                }
+              }
+              pendingCandidatesRef.current.delete(fromSocketId);
+            }
+
             socket.emit('voice_signal', {
               roomId,
               toSocketId: fromSocketId,
@@ -339,8 +372,31 @@ export function useWebRTCVoice({ roomId, myPlayerId, playerName }: UseWebRTCVoic
             });
           } else if (signal.answer) {
             await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
+
+            // Flush buffered ICE candidates
+            const pending = pendingCandidatesRef.current.get(fromSocketId);
+            if (pending && pending.length > 0) {
+              for (const cand of pending) {
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(cand));
+                } catch (e) {
+                  console.warn('Error applying buffered candidate:', e);
+                }
+              }
+              pendingCandidatesRef.current.delete(fromSocketId);
+            }
           } else if (signal.candidate) {
-            await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            if (!pc.remoteDescription) {
+              const pending = pendingCandidatesRef.current.get(fromSocketId) || [];
+              pending.push(signal.candidate);
+              pendingCandidatesRef.current.set(fromSocketId, pending);
+            } else {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+              } catch (e) {
+                console.warn('Error adding ICE candidate:', e);
+              }
+            }
           }
         } catch (err) {
           console.error('Signal handling error:', err);

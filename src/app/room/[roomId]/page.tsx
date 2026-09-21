@@ -19,6 +19,7 @@ import { TargetCardSelectModal } from '@/components/game/TargetCardSelectModal';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { ActionAnimationOverlay } from '@/components/game/ActionAnimationOverlay';
 import { SaloonChatPanel } from '@/components/game/SaloonChatPanel';
+import { useWebRTCVoice } from '@/lib/hooks/useWebRTCVoice';
 import { soundEngine } from '@/lib/audio/soundEffects';
 
 export default function RoomPage() {
@@ -323,6 +324,32 @@ export default function RoomPage() {
         )?.id
       : '') ||
     '';
+
+  const effectivePlayerId =
+    myPlayerId ||
+    (typeof window !== 'undefined' ? sessionStorage.getItem('bang_player_id') || '' : '');
+
+  // Persistent WebRTC Voice Controller across lobby and game phases
+  const voiceController = useWebRTCVoice({
+    roomId,
+    myPlayerId: effectivePlayerId,
+    playerName,
+  });
+
+  // Sync active speakers to state for real-time visual indicator rings on seats and lobby
+  useEffect(() => {
+    const activeSpeaking: string[] = [];
+    if (voiceController.isSpeaking && effectivePlayerId) {
+      activeSpeaking.push(effectivePlayerId);
+    }
+    voiceController.voicePeers.forEach((p) => {
+      if (p.isSpeaking && p.playerId) {
+        activeSpeaking.push(p.playerId);
+      }
+    });
+    setSpeakingPlayerIds(activeSpeaking);
+  }, [voiceController.isSpeaking, voiceController.voicePeers, effectivePlayerId]);
+
   const isMyTurn = gameState?.currentTurnPlayerId === myPlayerId;
 
   const selectedCard = useMemo(() => {
@@ -571,18 +598,23 @@ export default function RoomPage() {
                 if (isChatHidden) {
                   setIsChatHidden(false);
                   setIsChatCollapsed(false);
+                } else if (isChatCollapsed) {
+                  setIsChatCollapsed(false);
                 } else {
-                  setIsChatCollapsed((prev) => !prev);
+                  setIsChatCollapsed(true);
                 }
               }
               setChatUnreadCount(0);
             }}
-            className="text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2.5 py-1 rounded-xl transition-all shadow-sm flex items-center gap-1 active:scale-95 relative"
+            className="text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2.5 py-1 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95 relative"
             title="چت متنی و گفتگوی صوتی سالون وسترن"
           >
             <span>💬</span>
             <span className="hidden sm:inline">چت و ویس</span>
             <span className="sm:hidden">چت</span>
+            {voiceController.isConnected && (
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
+            )}
             {chatUnreadCount > 0 && (
               <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-black flex items-center justify-center animate-bounce shadow">
                 {chatUnreadCount > 9 ? '+۹' : chatUnreadCount}
@@ -611,14 +643,55 @@ export default function RoomPage() {
 
       {/* Main Content: Lobby or Playing */}
       {gameState.status === 'lobby' ? (
-        <div className="flex-1 flex items-center justify-center p-4">
-          <LobbyRoom
-            gameState={gameState}
-            myPlayerId={myPlayerId}
-            onAddBot={() => getSocket().emit('add_bot', { roomId })}
-            onToggleReady={() => getSocket().emit('toggle_ready', { roomId })}
-            onStartGame={() => getSocket().emit('start_game', { roomId })}
-          />
+        <div className="flex-1 flex flex-col lg:flex-row items-center justify-between w-full overflow-hidden p-2 sm:p-4 gap-4">
+          <div className="flex-1 w-full overflow-y-auto max-h-[calc(100vh-80px)] flex items-center justify-center">
+            <LobbyRoom
+              gameState={gameState}
+              myPlayerId={myPlayerId}
+              onAddBot={() => getSocket().emit('add_bot', { roomId })}
+              onToggleReady={() => getSocket().emit('toggle_ready', { roomId })}
+              onStartGame={() => getSocket().emit('start_game', { roomId })}
+              speakingPlayerIds={speakingPlayerIds}
+              isVoiceConnected={voiceController.isConnected}
+              onOpenVoiceChat={() => {
+                if (window.innerWidth < 1024) {
+                  setChatMobileOpen(true);
+                } else {
+                  setIsChatHidden(false);
+                  setIsChatCollapsed(false);
+                }
+              }}
+            />
+          </div>
+
+          {/* Desktop Right Side Saloon Chat & Voice Panel (Lobby) */}
+          <div
+            style={{
+              display: isChatHidden ? 'none' : 'block',
+              width: isChatCollapsed ? 48 : chatWidth,
+              transition: isResizingChatRef.current ? 'none' : 'width 0.2s ease-out',
+            }}
+            className="hidden lg:block p-2 sm:p-3 self-stretch shrink-0 overflow-hidden"
+          >
+            <SaloonChatPanel
+              roomId={roomId}
+              myPlayerId={myPlayerId}
+              playerName={playerName}
+              players={gameState.players}
+              currentWidth={chatWidth}
+              isCollapsed={isChatCollapsed}
+              onToggleCollapse={() => setIsChatCollapsed((prev) => !prev)}
+              onClose={() => setIsChatHidden(true)}
+              onResizeStep={(delta) => {
+                if (isChatCollapsed) setIsChatCollapsed(false);
+                setChatWidth((prev) => Math.max(180, Math.min(520, prev + delta)));
+              }}
+              unreadCount={chatUnreadCount}
+              onResetUnread={() => setChatUnreadCount(0)}
+              onSpeakingPeersChange={setSpeakingPlayerIds}
+              voiceController={voiceController}
+            />
+          </div>
         </div>
       ) : (
         <div className="flex-1 flex flex-col justify-between overflow-y-auto">
@@ -726,6 +799,7 @@ export default function RoomPage() {
                 unreadCount={chatUnreadCount}
                 onResetUnread={() => setChatUnreadCount(0)}
                 onSpeakingPeersChange={setSpeakingPlayerIds}
+                voiceController={voiceController}
               />
             </div>
           </div>
@@ -881,28 +955,29 @@ export default function RoomPage() {
             </div>
           )}
 
-          {/* Floating Reopen Chat Button (when hidden on desktop) */}
-          {isChatHidden && (
-            <button
-              onClick={() => {
-                setIsChatHidden(false);
-                setIsChatCollapsed(false);
-                setChatUnreadCount(0);
-              }}
-              className="hidden lg:flex fixed bottom-28 right-5 z-40 bg-gradient-to-r from-amber-800 to-saloon-900 hover:from-amber-700 hover:to-saloon-800 border-2 border-amber-500/80 hover:border-amber-400 text-amber-200 hover:text-white px-4 py-2.5 rounded-2xl shadow-2xl items-center gap-2 text-xs font-black transition-all hover:scale-105 active:scale-95 group select-none"
-              title="نمایش مجدد چت و ویس‌چت سالون"
-            >
-              <span className="text-base group-hover:rotate-12 transition-transform">💬</span>
-              <span>چت و ویس سالون</span>
-              {chatUnreadCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center animate-bounce shadow">
-                  {chatUnreadCount > 9 ? '+۹' : chatUnreadCount}
-                </span>
-              )}
-              <span className="text-emerald-400 text-xs">🎙️</span>
-            </button>
-          )}
         </div>
+      )}
+
+      {/* Floating Reopen Chat Button (when hidden on desktop, in either lobby or playing) */}
+      {isChatHidden && (
+        <button
+          onClick={() => {
+            setIsChatHidden(false);
+            setIsChatCollapsed(false);
+            setChatUnreadCount(0);
+          }}
+          className="hidden lg:flex fixed bottom-28 right-5 z-40 bg-gradient-to-r from-amber-800 to-saloon-900 hover:from-amber-700 hover:to-saloon-800 border-2 border-amber-500/80 hover:border-amber-400 text-amber-200 hover:text-white px-4 py-2.5 rounded-2xl shadow-2xl items-center gap-2 text-xs font-black transition-all hover:scale-105 active:scale-95 group select-none"
+          title="نمایش مجدد چت و ویس‌چت سالون"
+        >
+          <span className="text-base group-hover:rotate-12 transition-transform">💬</span>
+          <span>چت و ویس سالون</span>
+          {chatUnreadCount > 0 && (
+            <span className="w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center animate-bounce shadow">
+              {chatUnreadCount > 9 ? '+۹' : chatUnreadCount}
+            </span>
+          )}
+          <span className="text-emerald-400 text-xs">🎙️</span>
+        </button>
       )}
 
       {/* Saloon Chat Modal (For Mobile screens or Lobby view) */}
@@ -929,6 +1004,7 @@ export default function RoomPage() {
               unreadCount={chatUnreadCount}
               onResetUnread={() => setChatUnreadCount(0)}
               onSpeakingPeersChange={setSpeakingPlayerIds}
+              voiceController={voiceController}
             />
           </div>
         </div>

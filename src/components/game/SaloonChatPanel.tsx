@@ -3,6 +3,8 @@ import { PublicPlayer, ChatMessage } from '@/lib/game-engine/types';
 import { getSocket } from '@/lib/socket/client';
 import { useWebRTCVoice } from '@/lib/hooks/useWebRTCVoice';
 
+export type WebRTCVoiceController = ReturnType<typeof useWebRTCVoice>;
+
 interface SaloonChatPanelProps {
   roomId: string;
   myPlayerId: string;
@@ -17,6 +19,7 @@ interface SaloonChatPanelProps {
   unreadCount?: number;
   onResetUnread?: () => void;
   onSpeakingPeersChange?: (speakingPlayerIds: string[]) => void;
+  voiceController: WebRTCVoiceController;
 }
 
 const QUICK_EMOTES = [
@@ -44,12 +47,13 @@ export const SaloonChatPanel: React.FC<SaloonChatPanelProps> = ({
   unreadCount = 0,
   onResetUnread,
   onSpeakingPeersChange,
+  voiceController,
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // WebRTC Voice Hook
+  // WebRTC Voice Hook passed from parent (persistent across views)
   const {
     isConnected,
     isMuted,
@@ -61,9 +65,9 @@ export const SaloonChatPanel: React.FC<SaloonChatPanelProps> = ({
     leaveVoice,
     toggleMute,
     toggleDeafen,
-  } = useWebRTCVoice({ roomId, myPlayerId, playerName });
+  } = voiceController;
 
-  // Notify parent of active speaking player IDs so WesternTable can light up seats
+  // Notify parent of active speaking player IDs so WesternTable & Lobby can light up seats
   useEffect(() => {
     const activeSpeaking: string[] = [];
     if (isSpeaking && myPlayerId) {

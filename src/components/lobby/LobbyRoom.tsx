@@ -7,6 +7,9 @@ interface LobbyRoomProps {
   onAddBot: () => void;
   onToggleReady: () => void;
   onStartGame: () => void;
+  speakingPlayerIds?: string[];
+  isVoiceConnected?: boolean;
+  onOpenVoiceChat?: () => void;
 }
 
 export const LobbyRoom: React.FC<LobbyRoomProps> = ({
@@ -15,6 +18,9 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
   onAddBot,
   onToggleReady,
   onStartGame,
+  speakingPlayerIds = [],
+  isVoiceConnected = false,
+  onOpenVoiceChat,
 }) => {
   const [copied, setCopied] = useState(false);
   const myPlayer = gameState.players.find((p) => p.id === myPlayerId);
@@ -38,6 +44,41 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
         <h1 className="text-3xl sm:text-4xl font-black text-amber-200 font-western tracking-wide">
           اتاق هفت‌تیرکش‌ها
         </h1>
+      </div>
+
+      {/* Saloon Voice & Chat Status Banner */}
+      <div className="w-full bg-gradient-to-r from-saloon-900 via-amber-950/30 to-saloon-900 border border-amber-600/30 hover:border-amber-500/60 rounded-3xl p-4 mb-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 transition-all">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl shadow-inner">
+            🎙️
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-black text-amber-300">گفتگوی صوتی و چت زنده سالون</span>
+              {isVoiceConnected && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+              )}
+            </div>
+            <div className="text-xs text-zinc-400">
+              {isVoiceConnected
+                ? '✅ به ویس‌چت سالون متصل هستید (صحبت کنید تا هاله سبز فعال شود)'
+                : 'می‌توانید هم‌اکنون با دوستان خود چت کنید و صحبت صوتی داشته باشید.'}
+            </div>
+          </div>
+        </div>
+
+        {onOpenVoiceChat && (
+          <button
+            onClick={onOpenVoiceChat}
+            className={`text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow active:scale-95 flex items-center gap-2 ${
+              isVoiceConnected
+                ? 'bg-emerald-800 hover:bg-emerald-700 text-white border border-emerald-500/60 shadow-emerald-950/40'
+                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400 shadow-lg'
+            }`}
+          >
+            <span>{isVoiceConnected ? '⚙️ پنل چت و ویس' : '🎙️ ورود به گفتگوی صوتی'}</span>
+          </button>
+        )}
       </div>
 
       {/* Room Code & Share Card */}
@@ -80,44 +121,65 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-          {gameState.players.map((p, index) => (
-            <div
-              key={p.id}
-              className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
-                p.id === myPlayerId
-                  ? 'bg-amber-950/40 border-amber-500/50 shadow-md'
-                  : 'bg-saloon-950/50 border-saloon-800'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-saloon-800 border border-saloon-700 flex items-center justify-center text-sm">
-                  {p.isBot ? '🤖' : '🤠'}
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-zinc-200 flex items-center gap-1">
-                    <span>{p.name}</span>
-                    {p.isHost && <span title="میزبان">👑</span>}
-                    {p.id === myPlayerId && (
-                      <span className="text-[10px] text-amber-400">(شما)</span>
+          {gameState.players.map((p, index) => {
+            const isSpeaking = speakingPlayerIds.includes(p.id);
+            return (
+              <div
+                key={p.id}
+                className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                  isSpeaking
+                    ? 'ring-2 ring-emerald-400 bg-emerald-950/40 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse'
+                    : p.id === myPlayerId
+                    ? 'bg-amber-950/40 border-amber-500/50 shadow-md'
+                    : 'bg-saloon-950/50 border-saloon-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm relative transition-all ${
+                      isSpeaking
+                        ? 'bg-emerald-900 border-emerald-400 text-emerald-200'
+                        : 'bg-saloon-800 border-saloon-700'
+                    }`}
+                  >
+                    {p.isBot ? '🤖' : '🤠'}
+                    {isSpeaking && (
+                      <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border border-saloon-950 rounded-full flex items-center justify-center text-[8px] animate-pulse">
+                        🎙️
+                      </span>
                     )}
                   </div>
-                  <div className="text-[10px] text-zinc-400">صندلی #{index + 1}</div>
+                  <div>
+                    <div className="text-xs font-bold text-zinc-200 flex items-center gap-1">
+                      <span>{p.name}</span>
+                      {p.isHost && <span title="میزبان">👑</span>}
+                      {p.id === myPlayerId && (
+                        <span className="text-[10px] text-amber-400">(شما)</span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-zinc-400">صندلی #{index + 1}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {isSpeaking && (
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950 border border-emerald-500/60 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span>صحبت...</span>
+                    </span>
+                  )}
+                  {p.isReady ? (
+                    <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-800 px-2 py-0.5 rounded-full">
+                      آماده ✅
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-zinc-500 bg-zinc-800/40 px-2 py-0.5 rounded-full">
+                      در انتظار
+                    </span>
+                  )}
                 </div>
               </div>
-
-              <div>
-                {p.isReady ? (
-                  <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-800 px-2 py-0.5 rounded-full">
-                    آماده ✅
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-zinc-500 bg-zinc-800/40 px-2 py-0.5 rounded-full">
-                    در انتظار
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Empty Slots */}
           {Array.from({ length: 7 - gameState.players.length }).map((_, i) => (

@@ -456,40 +456,64 @@ export function setupSocketHandlers(io: Server) {
     });
 
     // ================= WEBRTC VOICE CHAT SIGNALING =================
-    socket.on('voice_join', ({ roomId }: { roomId: string }) => {
-      const cleanRoomId = roomId.toUpperCase().trim();
-      const state = rooms.get(cleanRoomId);
-      const mapping = socketPlayerMap.get(socket.id);
-      if (!state || !mapping) return;
+    socket.on(
+      'voice_join',
+      ({
+        roomId,
+        playerId: fallbackPlayerId,
+        playerName: fallbackPlayerName,
+      }: {
+        roomId: string;
+        playerId?: string;
+        playerName?: string;
+      }) => {
+        const cleanRoomId = roomId.toUpperCase().trim();
+        const state = rooms.get(cleanRoomId);
+        if (!state) return;
 
-      const player = state.players.find((p) => p.id === mapping.playerId);
-      if (!player) return;
+        let mapping = socketPlayerMap.get(socket.id);
+        let player = mapping ? state.players.find((p) => p.id === mapping!.playerId) : undefined;
 
-      if (!voiceRooms.has(cleanRoomId)) {
-        voiceRooms.set(cleanRoomId, new Map());
+        if (!player && fallbackPlayerId) {
+          player = state.players.find((p) => p.id === fallbackPlayerId);
+        }
+        if (!player && fallbackPlayerName) {
+          const norm = fallbackPlayerName.trim().toLowerCase();
+          player = state.players.find((p) => p.name.trim().toLowerCase() === norm);
+        }
+
+        if (!player) return;
+
+        // Ensure socket mapping and socket room join
+        socketPlayerMap.set(socket.id, { roomId: cleanRoomId, playerId: player.id });
+        socket.join(cleanRoomId);
+
+        if (!voiceRooms.has(cleanRoomId)) {
+          voiceRooms.set(cleanRoomId, new Map());
+        }
+        const roomVoicePeers = voiceRooms.get(cleanRoomId)!;
+
+        const newPeer: VoicePeerState = {
+          playerId: player.id,
+          socketId: socket.id,
+          name: player.name,
+          characterName: player.character?.name,
+          isMuted: false,
+          isDeafened: false,
+          isSpeaking: false,
+        };
+
+        // 1. Send currently connected voice peers to the newcomer
+        const existingPeers = Array.from(roomVoicePeers.values());
+        socket.emit('voice_room_peers', { peers: existingPeers });
+
+        // 2. Save newcomer in voice room
+        roomVoicePeers.set(socket.id, newPeer);
+
+        // 3. Notify everyone else in the room
+        socket.to(cleanRoomId).emit('voice_peer_joined', { peer: newPeer });
       }
-      const roomVoicePeers = voiceRooms.get(cleanRoomId)!;
-
-      const newPeer: VoicePeerState = {
-        playerId: player.id,
-        socketId: socket.id,
-        name: player.name,
-        characterName: player.character?.name,
-        isMuted: false,
-        isDeafened: false,
-        isSpeaking: false,
-      };
-
-      // 1. Send currently connected voice peers to the newcomer
-      const existingPeers = Array.from(roomVoicePeers.values());
-      socket.emit('voice_room_peers', { peers: existingPeers });
-
-      // 2. Save newcomer in voice room
-      roomVoicePeers.set(socket.id, newPeer);
-
-      // 3. Notify everyone else in the room
-      socket.to(cleanRoomId).emit('voice_peer_joined', { peer: newPeer });
-    });
+    );
 
     socket.on('voice_leave', ({ roomId }: { roomId: string }) => {
       const cleanRoomId = roomId.toUpperCase().trim();
