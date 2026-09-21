@@ -34,35 +34,35 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 flex flex-col items-center animate-in fade-in duration-300">
+    <div className="w-full max-w-4xl mx-auto p-2 sm:p-4 flex flex-col items-center animate-in fade-in duration-300">
       {/* Saloon Header */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-4 py-1.5 rounded-full text-amber-400 text-xs font-bold mb-2">
+      <div className="text-center mb-2 sm:mb-5">
+        <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-amber-500/10 border border-amber-500/30 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-amber-400 text-[11px] sm:text-xs font-bold mb-1 sm:mb-2">
           <span>⭐</span>
           <span>لابی بازی آنلاین غرب وحشی (BANG!)</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-amber-200 font-western tracking-wide">
+        <h1 className="text-2xl sm:text-4xl font-black text-amber-200 font-western tracking-wide">
           اتاق هفت‌تیرکش‌ها
         </h1>
       </div>
 
       {/* Saloon Voice & Chat Status Banner */}
-      <div className="w-full bg-gradient-to-r from-saloon-900 via-amber-950/30 to-saloon-900 border border-amber-600/30 hover:border-amber-500/60 rounded-3xl p-4 mb-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 transition-all">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl shadow-inner">
+      <div className="w-full bg-gradient-to-r from-saloon-900 via-amber-950/30 to-saloon-900 border border-amber-600/30 hover:border-amber-500/60 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 mb-2 sm:mb-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 transition-all">
+        <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-base sm:text-xl shadow-inner shrink-0">
             🎙️
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-black text-amber-300">گفتگوی صوتی و چت زنده سالون</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xs sm:text-sm font-black text-amber-300 truncate">گفتگوی صوتی و چت سالون</span>
               {isVoiceConnected && (
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
               )}
             </div>
-            <div className="text-xs text-zinc-400">
+            <div className="text-[10px] sm:text-xs text-zinc-400 truncate sm:whitespace-normal">
               {isVoiceConnected
-                ? '✅ به ویس‌چت سالون متصل هستید (صحبت کنید تا هاله سبز فعال شود)'
-                : 'می‌توانید هم‌اکنون با دوستان خود چت کنید و صحبت صوتی داشته باشید.'}
+                ? '✅ به ویس‌چت متصل هستید (صحبت کنید)'
+                : 'می‌توانید همین حالا با دوستان خود صحبت و چت کنید.'}
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
         {onOpenVoiceChat && (
           <button
             onClick={onOpenVoiceChat}
-            className={`text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow active:scale-95 flex items-center gap-2 ${
+            className={`w-full sm:w-auto text-xs font-bold px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all shadow active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 ${
               isVoiceConnected
                 ? 'bg-emerald-800 hover:bg-emerald-700 text-white border border-emerald-500/60 shadow-emerald-950/40'
                 : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400 shadow-lg'
@@ -82,51 +82,49 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
       </div>
 
       {/* Room Code & Share Card */}
-      <div className="w-full bg-saloon-900 border border-saloon-700/60 rounded-3xl p-5 mb-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <div className="text-xs text-zinc-400 mb-1">کد اختصاصی اتاق:</div>
-          <div className="text-2xl font-black tracking-wider text-amber-400 font-mono">
+      <div className="w-full bg-saloon-900 border border-saloon-700/60 rounded-2xl sm:rounded-3xl p-3 sm:p-5 mb-2 sm:mb-4 shadow-xl flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="text-[11px] sm:text-xs text-zinc-400">کد اتاق:</div>
+          <div className="text-xl sm:text-2xl font-black tracking-wider text-amber-400 font-mono">
             {gameState.roomId}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={copyInviteLink}
-            className="bg-saloon-800 hover:bg-saloon-700 text-amber-200 border border-amber-600/40 text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow active:scale-95 flex items-center gap-1.5"
-          >
-            <span>{copied ? '✅ کپی شد!' : '📋 کپی لینک دعوت دوستان'}</span>
-          </button>
-        </div>
+        <button
+          onClick={copyInviteLink}
+          className="bg-saloon-800 hover:bg-saloon-700 text-amber-200 border border-amber-600/40 text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-xl transition-all shadow active:scale-95 flex items-center gap-1 shrink-0"
+        >
+          <span>{copied ? '✅ کپی شد!' : '📋 کپی لینک دعوت'}</span>
+        </button>
       </div>
 
       {/* Players List Grid */}
-      <div className="w-full bg-saloon-900 border border-saloon-700/60 rounded-3xl p-6 mb-6 shadow-xl">
-        <div className="flex items-center justify-between mb-4 border-b border-saloon-800 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-base text-zinc-100">فهرست بازیکنان</span>
-            <span className="bg-saloon-800 text-amber-300 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-              {gameState.players.length} از ۷ نفر
+      <div className="w-full bg-saloon-900 border border-saloon-700/60 rounded-2xl sm:rounded-3xl p-3 sm:p-6 mb-2 sm:mb-4 shadow-xl">
+        <div className="flex items-center justify-between mb-2 sm:mb-4 border-b border-saloon-800 pb-2 sm:pb-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="font-bold text-xs sm:text-base text-zinc-100">فهرست بازیکنان</span>
+            <span className="bg-saloon-800 text-amber-300 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-semibold">
+              {gameState.players.length} از ۷
             </span>
           </div>
 
           {gameState.players.length < 7 && (
             <button
               onClick={onAddBot}
-              className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-600 text-xs px-3 py-1.5 rounded-xl transition-all active:scale-95 flex items-center gap-1"
+              className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-600 text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl transition-all active:scale-95 flex items-center gap-1"
             >
-              <span>🤖 افزودن ربات برای بازی سریع</span>
+              <span>🤖 افزودن ربات</span>
             </button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-4">
           {gameState.players.map((p, index) => {
             const isSpeaking = speakingPlayerIds.includes(p.id);
             return (
               <div
                 key={p.id}
-                className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                className={`flex items-center justify-between p-2 sm:p-3 rounded-xl sm:rounded-2xl border transition-all ${
                   isSpeaking
                     ? 'ring-2 ring-emerald-400 bg-emerald-950/40 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse'
                     : p.id === myPlayerId

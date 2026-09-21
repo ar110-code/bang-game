@@ -110,26 +110,26 @@ export const WesternTable: React.FC<WesternTableProps> = ({
   const totalPlayers = orderedPlayers.length;
 
   return (
-    <div className="relative w-full flex-1 flex flex-col items-center justify-center py-2 sm:py-6 px-1 sm:px-4 min-h-[440px] sm:min-h-[600px] overflow-hidden">
+    <div className="relative w-full flex-1 min-h-0 flex flex-col items-center justify-center py-1 sm:py-6 px-1 sm:px-4 overflow-hidden">
       {/* Zoom / Scale Mini Toolbar at Top Right */}
       {(onZoomIn || onZoomOut) && (
-        <div className="absolute top-2 right-2 sm:right-4 z-30 flex items-center gap-1.5 bg-saloon-900/85 border border-saloon-700/80 rounded-2xl px-2.5 py-1 backdrop-blur-md shadow-lg text-xs select-none">
+        <div className="absolute top-1 sm:top-2 right-1 sm:right-4 z-30 flex items-center gap-1 sm:gap-1.5 bg-saloon-900/85 border border-saloon-700/80 rounded-2xl px-2 sm:px-2.5 py-0.5 sm:py-1 backdrop-blur-md shadow-lg text-xs select-none">
           <span className="text-[10px] text-zinc-400 font-bold hidden sm:inline">اندازه میز:</span>
           <button
             type="button"
             onClick={onZoomOut}
-            className="w-6 h-6 rounded-lg bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-zinc-200 hover:text-amber-300 font-black flex items-center justify-center transition-all text-xs"
+            className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-zinc-200 hover:text-amber-300 font-black flex items-center justify-center transition-all text-xs"
             title="کوچک‌تر کردن میز و کارت‌ها (-)"
           >
             🔍−
           </button>
-          <span className="text-[11px] font-mono font-black text-amber-400 min-w-[34px] text-center">
+          <span className="text-[10px] sm:text-[11px] font-mono font-black text-amber-400 min-w-[30px] sm:min-w-[34px] text-center">
             {Math.round((tableScale || 1) * 100)}%
           </span>
           <button
             type="button"
             onClick={onZoomIn}
-            className="w-6 h-6 rounded-lg bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-zinc-200 hover:text-amber-300 font-black flex items-center justify-center transition-all text-xs"
+            className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-zinc-200 hover:text-amber-300 font-black flex items-center justify-center transition-all text-xs"
             title="بزرگ‌تر کردن میز و کارت‌ها (+)"
           >
             🔍+
@@ -149,7 +149,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
 
       {/* Outer Table Arena Container with Dynamic Size and Scale */}
       <div
-        className={`relative w-full ${maxWidthClass || 'max-w-5xl'} h-full min-h-[440px] sm:min-h-[580px] flex items-center justify-center transition-all duration-300 origin-center`}
+        className={`relative w-full ${maxWidthClass || 'max-w-5xl'} h-full min-h-[300px] sm:min-h-[520px] max-h-full flex items-center justify-center transition-all duration-300 origin-center`}
         style={{
           transform: `scale(${tableScale || 1})`,
         }}

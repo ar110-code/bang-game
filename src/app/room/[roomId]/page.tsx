@@ -112,8 +112,26 @@ export default function RoomPage() {
     } catch (e) {}
   }, [gameLogWidth, isLogCollapsed, chatWidth, isChatCollapsed, isChatHidden]);
 
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Compute table dynamic scale and max width class based on side panels and manual zoom
   const baseTableScale = useMemo(() => {
+    if (isMobile) {
+      if (typeof window !== 'undefined' && window.innerWidth < 480) {
+        return 0.72; // Fit phone viewport comfortably without scrolling
+      }
+      return 0.82; // Tablet viewport
+    }
+
     const leftWidth = isLogCollapsed ? 48 : gameLogWidth;
     const rightWidth = isChatHidden ? 0 : (isChatCollapsed ? 48 : chatWidth);
     const totalSideWidth = leftWidth + rightWidth;
@@ -123,11 +141,12 @@ export default function RoomPage() {
     if (totalSideWidth <= 580) return 0.98;
     if (totalSideWidth <= 750) return 0.88;
     return 0.80;
-  }, [isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
+  }, [isMobile, isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
 
-  const currentTableScale = Math.max(0.65, Math.min(1.4, baseTableScale + tableZoomOffset));
+  const currentTableScale = Math.max(0.55, Math.min(1.4, baseTableScale + tableZoomOffset));
 
   const tableMaxWidthClass = useMemo(() => {
+    if (isMobile) return 'max-w-full';
     const leftWidth = isLogCollapsed ? 48 : gameLogWidth;
     const rightWidth = isChatHidden ? 0 : (isChatCollapsed ? 48 : chatWidth);
     const totalSideWidth = leftWidth + rightWidth;
@@ -136,13 +155,14 @@ export default function RoomPage() {
     if (totalSideWidth <= 420) return 'max-w-6xl';
     if (totalSideWidth <= 650) return 'max-w-5xl';
     return 'max-w-4xl';
-  }, [isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
+  }, [isMobile, isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
 
   const currentCardSize: 'sm' | 'md' | 'lg' = useMemo(() => {
+    if (isMobile) return 'sm';
     if (currentTableScale >= 1.08) return 'md';
     if (currentTableScale <= 0.88) return 'sm';
     return 'md';
-  }, [currentTableScale]);
+  }, [isMobile, currentTableScale]);
 
   // Resize handler for Left Game Log
   const handleStartResize = (e: React.MouseEvent | React.TouchEvent) => {
@@ -540,10 +560,10 @@ export default function RoomPage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-saloon-950 text-saloon-100 relative selection:bg-amber-600">
+    <div className="h-screen h-[100dvh] max-h-[100dvh] w-full flex flex-col bg-saloon-950 text-saloon-100 relative selection:bg-amber-600 overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="w-full bg-saloon-900/90 border-b border-saloon-800 px-4 py-2 flex items-center justify-between z-20 backdrop-blur-md">
-        <div className="flex items-center gap-3">
+      <header className="w-full bg-saloon-900/90 border-b border-saloon-800 px-2 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between z-20 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => router.push('/')}
             className="text-xs text-zinc-400 hover:text-amber-300 flex items-center gap-1 transition-colors"
@@ -667,11 +687,10 @@ export default function RoomPage() {
           {/* Desktop Right Side Saloon Chat & Voice Panel (Lobby) */}
           <div
             style={{
-              display: isChatHidden ? 'none' : 'block',
               width: isChatCollapsed ? 48 : chatWidth,
               transition: isResizingChatRef.current ? 'none' : 'width 0.2s ease-out',
             }}
-            className="hidden lg:block p-2 sm:p-3 self-stretch shrink-0 overflow-hidden"
+            className={`${isChatHidden ? 'hidden' : 'hidden lg:block'} p-2 sm:p-3 self-stretch shrink-0 overflow-hidden`}
           >
             <SaloonChatPanel
               roomId={roomId}
@@ -694,12 +713,12 @@ export default function RoomPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col justify-between overflow-y-auto">
+        <div className="flex-1 min-h-0 flex flex-col justify-between overflow-hidden">
           {/* Western Table, Game Log & Saloon Chat Arena */}
           <div
             ref={containerRef}
             dir="ltr"
-            className="flex-1 flex flex-col lg:flex-row items-center justify-between relative w-full overflow-hidden"
+            className="flex-1 min-h-0 flex flex-col lg:flex-row items-center justify-between relative w-full overflow-hidden"
           >
             {/* 1. Desktop Left Side Game Log */}
             <div
@@ -777,11 +796,10 @@ export default function RoomPage() {
             {/* 3. Desktop Right Side Saloon Chat & Voice Panel */}
             <div
               style={{
-                display: isChatHidden ? 'none' : 'block',
                 width: isChatCollapsed ? 48 : chatWidth,
                 transition: isResizingChatRef.current ? 'none' : 'width 0.2s ease-out',
               }}
-              className="hidden lg:block p-2 sm:p-3 self-stretch shrink-0 overflow-hidden"
+              className={`${isChatHidden ? 'hidden' : 'hidden lg:block'} p-2 sm:p-3 self-stretch shrink-0 overflow-hidden`}
             >
               <SaloonChatPanel
                 roomId={roomId}

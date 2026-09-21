@@ -106,9 +106,9 @@ export const HandCards: React.FC<HandCardsProps> = ({
   };
 
   return (
-    <div className="w-full bg-saloon-900/95 border-t border-saloon-700/80 backdrop-blur-md px-3 sm:px-4 py-3 shadow-2xl flex flex-col items-center z-20">
+    <div className="w-full bg-saloon-900/95 border-t border-saloon-700/80 backdrop-blur-md px-2 sm:px-4 py-1.5 sm:py-2.5 shadow-2xl flex flex-col items-center z-20 shrink-0">
       {/* Action Bar Above Hand Cards */}
-      <div className="w-full max-w-4xl flex items-center justify-between mb-2 px-2 flex-wrap gap-2">
+      <div className="w-full max-w-4xl flex items-center justify-between mb-1 sm:mb-2 px-1 sm:px-2 flex-wrap gap-1 sm:gap-2">
         <div className="flex items-center gap-2">
           {isEffectActive ? (
             <div className="bg-amber-500/20 text-amber-200 border border-amber-500/40 px-3 py-1 rounded-xl text-xs font-bold animate-pulse flex items-center gap-1.5">
@@ -284,7 +284,7 @@ export const HandCards: React.FC<HandCardsProps> = ({
       )}
 
       {/* Cards Scrollable Carousel */}
-      <div className="w-full max-w-5xl flex items-end justify-center gap-3 overflow-x-auto py-2 px-4 scrollbar-thin">
+      <div className="w-full max-w-5xl flex items-end justify-center gap-2 sm:gap-3 overflow-x-auto py-1 sm:py-2 px-2 sm:px-4 scrollbar-thin">
         {cards.length === 0 ? (
           <div className="py-6 text-zinc-500 text-xs italic">
             دست شما خالی است! در نوبت بعدی کارت می‌کشید.
