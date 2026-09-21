@@ -113,7 +113,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
     <div
       onClick={isTargetable ? onSelectTarget : () => onInspect?.(player)}
       className={`relative flex flex-col p-1 sm:p-2 rounded-2xl transition-all duration-200 select-none z-20 ${
-        compact ? 'w-[114px] sm:w-56' : 'w-32 sm:w-60'
+        compact ? 'w-[102px] sm:w-56' : 'w-28 sm:w-60'
       } ${
         isSpeaking
           ? 'ring-2 ring-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.85)] border-emerald-400'
@@ -132,7 +132,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
       <div className="flex items-center justify-between gap-1 w-full">
         {/* RIGHT SIDE (First in RTL): 2:3 Role Card */}
         <div
-          className="relative w-8 h-[48px] sm:w-11 sm:h-[66px] rounded-lg sm:rounded-xl overflow-hidden border border-amber-600/70 shadow-md shrink-0 bg-saloon-900 self-center"
+          className="relative w-7 h-[42px] sm:w-11 sm:h-[66px] rounded-lg sm:rounded-xl overflow-hidden border border-amber-600/70 shadow-md shrink-0 bg-saloon-900 self-center"
           title={isRoleKnown ? `نقش: ${roleInfo.label}` : 'نقش مخفی بازیکن'}
         >
           {isRoleKnown && !roleImgError ? (
@@ -151,7 +151,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
           )}
           {/* Role Title Overlay Badge */}
           <div
-            className={`absolute inset-x-0 bottom-0 backdrop-blur-sm text-[7px] sm:text-[9px] font-black text-center py-0.2 sm:py-0.5 truncate px-0.5 border-t ${roleInfo.color}`}
+            className={`absolute inset-x-0 bottom-0 backdrop-blur-sm text-[6.5px] sm:text-[9px] font-black text-center py-0.2 sm:py-0.5 truncate px-0.5 border-t ${roleInfo.color}`}
           >
             {roleInfo.label}
           </div>
@@ -161,13 +161,13 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
         <div className="flex-1 flex flex-col items-center justify-between text-center px-0.5 min-w-0 py-0.5">
           {/* Name & Bot/Player Indicator */}
           <div className="flex items-center gap-0.5 sm:gap-1 justify-center max-w-full truncate">
-            <span className="text-[10px] sm:text-xs">{player.isBot ? '🤖' : '🤠'}</span>
-            <span className="font-black text-[9px] sm:text-xs truncate max-w-[42px] sm:max-w-[100px] text-zinc-100">
+            <span className="text-[9px] sm:text-xs">{player.isBot ? '🤖' : '🤠'}</span>
+            <span className="font-black text-[8px] sm:text-xs truncate max-w-[36px] sm:max-w-[100px] text-zinc-100">
               {player.name}
             </span>
-            {isMe && <span className="text-[8px] sm:text-[9px] font-bold text-amber-400 shrink-0">(شما)</span>}
+            {isMe && <span className="text-[7px] sm:text-[9px] font-bold text-amber-400 shrink-0">(شما)</span>}
             {isSpeaking && (
-              <span className="text-[9px] sm:text-[10px] animate-pulse text-emerald-400 shrink-0" title="در حال صحبت در ویس‌چت...">
+              <span className="text-[8px] sm:text-[10px] animate-pulse text-emerald-400 shrink-0" title="در حال صحبت در ویس‌چت...">
                 🎙️
               </span>
             )}
@@ -175,25 +175,25 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
 
           {/* Turn Indicator or Active Status */}
           {isCurrentTurn ? (
-            <span className="bg-amber-500 text-saloon-950 px-1.5 py-0.2 rounded-full text-[7px] sm:text-[9px] font-black animate-pulse shadow-sm">
+            <span className="bg-amber-500 text-saloon-950 px-1.5 py-0.2 rounded-full text-[6.5px] sm:text-[9px] font-black animate-pulse shadow-sm">
               نوبت
             </span>
           ) : (
-            <div className="h-2.5 sm:h-3" />
+            <div className="h-2 sm:h-3" />
           )}
 
           {/* Health Bullets */}
-          <div className="scale-[0.65] sm:scale-90 origin-center my-0 sm:my-0.5">
+          <div className="scale-[0.58] sm:scale-90 origin-center my-0 sm:my-0.5">
             <BulletIndicator currentHp={player.currentHp} maxHp={player.maxHp} size="sm" />
           </div>
 
           {/* Hand Count and Effective Distance Badges */}
           <div className="flex items-center gap-0.5 sm:gap-1 justify-center flex-wrap">
-            <span className="text-[7px] sm:text-[9px] text-amber-200/90 bg-saloon-900/90 px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded border border-saloon-800 font-bold">
+            <span className="text-[6.5px] sm:text-[9px] text-amber-200/90 bg-saloon-900/90 px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded border border-saloon-800 font-bold">
               🃏 {player.handCount}
             </span>
             {effectiveDistance !== undefined && effectiveDistance > 0 && effectiveDistance < 900 && !isMe && !isDead && (
-              <span className="text-[7px] sm:text-[9px] text-amber-300 bg-amber-950/90 border border-amber-600/50 px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded font-bold">
+              <span className="text-[6.5px] sm:text-[9px] text-amber-300 bg-amber-950/90 border border-amber-600/50 px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded font-bold">
                 🎯 {effectiveDistance}
               </span>
             )}
@@ -206,7 +206,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
                 e.stopPropagation();
                 onSelectTarget?.();
               }}
-              className={`w-full mt-0.5 font-black text-[8px] sm:text-xs py-0.5 sm:py-1 px-1 rounded sm:rounded-lg shadow border flex items-center justify-center gap-0.5 transition-all duration-150 active:scale-95 ${targetConfig.btnClass}`}
+              className={`w-full mt-0.5 font-black text-[7px] sm:text-xs py-0.5 sm:py-1 px-1 rounded sm:rounded-lg shadow border flex items-center justify-center gap-0.5 transition-all duration-150 active:scale-95 ${targetConfig.btnClass}`}
             >
               <span>{targetConfig.icon}</span>
               <span className="truncate">{targetConfig.label}</span>
@@ -220,7 +220,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
             e.stopPropagation();
             onInspect?.(player);
           }}
-          className="relative w-8 h-[48px] sm:w-11 sm:h-[66px] rounded-lg sm:rounded-xl overflow-hidden border border-amber-600/70 shadow-md shrink-0 bg-saloon-900 group cursor-pointer self-center"
+          className="relative w-7 h-[42px] sm:w-11 sm:h-[66px] rounded-lg sm:rounded-xl overflow-hidden border border-amber-600/70 shadow-md shrink-0 bg-saloon-900 group cursor-pointer self-center"
           title={`کاراکتر: ${player.character?.nameFa || 'ناشناس'} (برای جزئیات کلیک کنید)`}
         >
           {player.character && !charImgError ? (
@@ -237,7 +237,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
           )}
           {/* Character Name Overlay Badge */}
           {player.character && (
-            <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-sm text-[7px] sm:text-[9px] font-black text-amber-300 text-center py-0.2 sm:py-0.5 truncate px-0.5 border-t border-amber-500/30">
+            <div className="absolute inset-x-0 bottom-0 bg-black/85 backdrop-blur-sm text-[6.5px] sm:text-[9px] font-black text-amber-300 text-center py-0.2 sm:py-0.5 truncate px-0.5 border-t border-amber-500/30">
               {player.character.nameFa}
             </div>
           )}
@@ -251,17 +251,17 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
             e.stopPropagation();
             onInspect?.(player);
           }}
-          className="w-full bg-saloon-900/90 hover:bg-saloon-850 hover:border-amber-500/70 rounded-md sm:rounded-lg py-0.2 sm:py-0.5 px-1 sm:px-2 mt-1 text-center border border-saloon-800 cursor-pointer group transition-all"
+          className="w-full bg-saloon-900/90 hover:bg-saloon-850 hover:border-amber-500/70 rounded-md sm:rounded-lg py-0.2 sm:py-0.5 px-0.5 sm:px-2 mt-0.5 sm:mt-1 text-center border border-saloon-800 cursor-pointer group transition-all"
           title={`قابلیت ${player.character.nameFa}: ${player.character.descFa}`}
         >
-          <span className="text-[8px] sm:text-[10px] text-amber-300 font-bold truncate block">
+          <span className="text-[7px] sm:text-[10px] text-amber-300 font-bold truncate block">
             ⚡ {player.character.descFa || player.character.titleFa}
           </span>
         </div>
       )}
 
       {/* Bottom Section: Equipped Blue Cards & Equipment */}
-      <div className="flex flex-wrap gap-0.5 sm:gap-1 items-center justify-center mt-1 w-full min-h-[16px]">
+      <div className="flex flex-wrap gap-0.5 sm:gap-1 items-center justify-center mt-0.5 sm:mt-1 w-full min-h-[14px] sm:min-h-[16px]">
         {/* WEAPON: High visibility with name and range */}
         {player.equipment.weapon && (
           player.equipment.weapon.name === 'volcanic' ? (

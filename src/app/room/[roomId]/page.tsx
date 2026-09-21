@@ -113,10 +113,13 @@ export default function RoomPage() {
   }, [gameLogWidth, isLogCollapsed, chatWidth, isChatCollapsed, isChatHidden]);
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isMobilePortrait, setIsMobilePortrait] = useState<boolean>(false);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
+      const small = window.innerWidth < 1024;
+      setIsMobile(small);
+      setIsMobilePortrait(small && window.innerHeight >= window.innerWidth);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -126,10 +129,13 @@ export default function RoomPage() {
   // Compute table dynamic scale and max width class based on side panels and manual zoom
   const baseTableScale = useMemo(() => {
     if (isMobile) {
-      if (typeof window !== 'undefined' && window.innerWidth < 480) {
-        return 0.72; // Fit phone viewport comfortably without scrolling
+      if (isMobilePortrait) {
+        if (typeof window !== 'undefined' && window.innerWidth < 375) {
+          return 0.88;
+        }
+        return 0.96;
       }
-      return 0.82; // Tablet viewport
+      return 0.76;
     }
 
     const leftWidth = isLogCollapsed ? 48 : gameLogWidth;
@@ -141,7 +147,7 @@ export default function RoomPage() {
     if (totalSideWidth <= 580) return 0.98;
     if (totalSideWidth <= 750) return 0.88;
     return 0.80;
-  }, [isMobile, isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
+  }, [isMobile, isMobilePortrait, isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
 
   const currentTableScale = Math.max(0.55, Math.min(1.4, baseTableScale + tableZoomOffset));
 
@@ -774,6 +780,7 @@ export default function RoomPage() {
                 onResetZoom={() => setTableZoomOffset(0)}
                 speakingPlayerIds={speakingPlayerIds}
                 isActionLocked={isGameActionLocked}
+                isMobile={isMobilePortrait}
               />
             </div>
 
