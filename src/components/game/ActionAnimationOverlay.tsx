@@ -815,7 +815,7 @@ export const ActionAnimationOverlay: React.FC<ActionAnimationOverlayProps> = ({
               <span className="text-4xl sm:text-5xl transform rotate-45 animate-bounce">🏹</span>
             </div>
             <span className="mt-2 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white font-black text-sm sm:text-lg px-4 py-1 rounded-xl shadow-lg border border-orange-400 animate-bounce">
-              حمله سرخ‌پوست‌ها! (زپلشک بدهید)
+              حمله سرخ‌پوست‌ها! (شلیک متقابل با بنگ!)
             </span>
           </div>
         )}

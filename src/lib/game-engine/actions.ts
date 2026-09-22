@@ -155,14 +155,17 @@ export function damagePlayer(
   state: GameState,
   targetId: string,
   amount: number,
-  attackerId?: string
+  attackerId?: string,
+  cardName?: string
 ) {
   const target = state.players.find((p) => p.id === targetId);
   if (!target || target.isEliminated) return;
 
   target.currentHp -= amount;
   addLog(state, `💥 ${target.name} ${amount} جان از دست داد! (جان باقیمانده: ${target.currentHp})`, 'attack');
-  triggerEffect(state, 'hit', attackerId, targetId);
+  if (cardName !== 'gatling' && cardName !== 'indians') {
+    triggerEffect(state, 'hit', attackerId, targetId, cardName);
+  }
 
   // Bart Cassidy ability: draw card on damage
   if (target.character?.name === 'bart_cassidy' && target.currentHp > 0) {

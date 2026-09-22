@@ -888,14 +888,12 @@ export function respondToReaction(
 
     if (pending.type === 'gatling') {
       addLog(state, `💨 ${player.name} با کارت زپلشک! از گلوله‌های مسلسل جاخالی داد!`, 'defense');
-      triggerEffect(state, 'missed', player.id, undefined, 'missed');
       advanceReactionQueue(state);
       return { success: true };
     }
 
     if (pending.type === 'indians') {
-      addLog(state, `🏹 ${player.name} با شلیک متقابل سرخ‌پوست‌ها را عقب راند!`, 'defense');
-      triggerEffect(state, 'bang', player.id, undefined, 'bang');
+      addLog(state, `🏹 ${player.name} با کارت بنگ! سرخ‌پوست‌ها را عقب راند!`, 'defense');
       advanceReactionQueue(state);
       return { success: true };
     }
@@ -951,7 +949,7 @@ export function respondToReaction(
     }
 
     // Bang, Gatling, Indians: target takes 1 damage
-    damagePlayer(state, pending.targetPlayerId, 1, pending.sourcePlayerId);
+    damagePlayer(state, pending.targetPlayerId, 1, pending.sourcePlayerId, pending.type);
 
     if (pending.type === 'gatling' || pending.type === 'indians') {
       advanceReactionQueue(state);

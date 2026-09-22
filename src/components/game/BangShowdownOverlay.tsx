@@ -33,6 +33,13 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
   const pendingReaction = gameState.pendingReaction;
   const isBangPending = pendingReaction?.type === 'bang';
 
+  // Gatling and Indians must NOT trigger Bang showdown overlay
+  const isGatlingOrIndiansActive =
+    pendingReaction?.type === 'gatling' ||
+    pendingReaction?.type === 'indians' ||
+    activeEffect?.cardName === 'gatling' ||
+    activeEffect?.cardName === 'indians';
+
   // Determine current shooter and defender from pendingReaction or activeEffect
   const currentShooterId = isBangPending
     ? pendingReaction.sourcePlayerId
@@ -53,6 +60,11 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
 
   // Handle Showdown lifecycle and state transitions
   useEffect(() => {
+    if (isGatlingOrIndiansActive) {
+      setIsVisible(false);
+      return;
+    }
+
     // 1. Pending Bang Reaction (waiting for defense)
     if (isBangPending) {
       setIsVisible(true);
@@ -112,7 +124,7 @@ export const BangShowdownOverlay: React.FC<BangShowdownOverlayProps> = ({
     }
   }, [isBangPending, activeEffect?.id, activeEffect?.type]);
 
-  if (!isVisible || !shooter || !defender) return null;
+  if (!isVisible || !shooter || !defender || isGatlingOrIndiansActive) return null;
 
   const isMeDefender = myPlayerId === defender.id;
   const isMeShooter = myPlayerId === shooter.id;
