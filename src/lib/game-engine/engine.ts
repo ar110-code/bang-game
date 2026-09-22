@@ -271,10 +271,32 @@ export function startTurn(state: GameState, playerId: string) {
     player.hand.push(...cards);
     // Black jack bonus check
     const secondCard = cards[1];
-    if (secondCard && (secondCard.suit === 'hearts' || secondCard.suit === 'diamonds')) {
-      const bonus = drawCards(state, 1);
-      player.hand.push(...bonus);
-      addLog(state, `🃏 بلک جک کارت دومش قرمز بود (${secondCard.suit}) و ۱ کارت اضافه جایزه گرفت!`, 'system');
+    if (secondCard) {
+      const isRed = secondCard.suit === 'hearts' || secondCard.suit === 'diamonds';
+      const suitFa =
+        secondCard.suit === 'hearts'
+          ? 'دل ♥ (قرمز)'
+          : secondCard.suit === 'diamonds'
+          ? 'خشت ♦ (قرمز)'
+          : secondCard.suit === 'spades'
+          ? 'پیک ♠ (مشکی)'
+          : 'گشنیز ♣ (مشکی)';
+      if (isRed) {
+        const bonus = drawCards(state, 1);
+        player.hand.push(...bonus);
+        addLog(
+          state,
+          `🃏 قابلیت بلک جک: کارت دوم رو شده «${secondCard.titleFa}» (${suitFa}) بود! ۱ کارت جایزه دریافت شد.`,
+          'system'
+        );
+        triggerEffect(state, 'stagecoach', player.id, undefined, 'stagecoach');
+      } else {
+        addLog(
+          state,
+          `🃏 قابلیت بلک جک: کارت دوم رو شده «${secondCard.titleFa}» (${suitFa}) بود (کارت مشکی بود، بدون کارت اضافه).`,
+          'system'
+        );
+      }
     }
   } else {
     const drawn = drawCards(state, drawCount);
@@ -449,10 +471,6 @@ function executePlayCard(
     }
 
     if (card.name === 'beer') {
-      const livingCount = state.players.filter((p) => !p.isEliminated).length;
-      if (livingCount <= 2) {
-        return { success: false, message: 'در فاز دوئل دونفره نوشیدن آبجو مجاز نیست!' };
-      }
       if (player.currentHp >= player.maxHp) {
         return { success: false, message: 'جان شما پر است و نیازی به نوشیدنی ندارید.' };
       }
@@ -770,9 +788,9 @@ function executePlayCard(
         return { success: false, message: 'باید یک بازیکن را برای فرستادن به زندان انتخاب کنید.' };
       }
       const target = state.players.find((p) => p.id === targetPlayerId);
-      if (!target || target.isEliminated || target.role === 'sheriff' || target.id === playerId) {
+      if (!target || target.isEliminated || target.id === playerId) {
         player.hand.push(card);
-        return { success: false, message: 'نمی‌توانید کلانتر یا خودتان را به زندان بیندازید.' };
+        return { success: false, message: 'نمی‌توانید خودتان را به زندان بیندازید.' };
       }
       if (target.equipment.jail) {
         player.hand.push(card);
@@ -974,8 +992,8 @@ export function discardExcessCard(
   playerId: string,
   cardId: string
 ): { success: boolean; message?: string } {
-  if (state.currentTurnPlayerId !== playerId || state.turnPhase !== 'discard') {
-    return { success: false, message: 'اکنون زمان دور ریختن کارت نیست.' };
+  if (state.currentTurnPlayerId !== playerId || (state.turnPhase !== 'discard' && state.turnPhase !== 'action')) {
+    return { success: false, message: 'اکنون زمان دور ریختن یا سوزاندن کارت نیست.' };
   }
 
   const player = state.players.find((p) => p.id === playerId);
@@ -986,12 +1004,18 @@ export function discardExcessCard(
 
   const discarded = player.hand.splice(idx, 1)[0];
   state.discardPile.push(discarded);
-  addLog(state, `🗑️ ${player.name} کارت ${discarded.titleFa} را دور انداخت.`, 'system');
+  if (state.turnPhase === 'action') {
+    addLog(state, `🔥 ${player.name} کارت ${discarded.titleFa} را در نوبت خود سوزاند.`, 'system');
+  } else {
+    addLog(state, `🗑️ ${player.name} کارت ${discarded.titleFa} را دور انداخت.`, 'system');
+  }
   checkSuzyLafayette(state, player);
 
-  if (player.hand.length <= player.currentHp) {
-    // Reached allowed limit! Automatically advance to next player
-    advanceToNextPlayer(state);
+  if (state.turnPhase === 'discard') {
+    if (player.hand.length <= player.currentHp) {
+      // Reached allowed limit! Automatically advance to next player
+      advanceToNextPlayer(state);
+    }
   }
 
   return { success: true };

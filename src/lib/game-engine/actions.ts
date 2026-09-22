@@ -184,10 +184,9 @@ export function damagePlayer(
 
   // Check death
   if (target.currentHp <= 0) {
-    // Check if player has beer to save life immediately
+    // Check if player has beer to save life immediately (allowed even in 1v1)
     const beerIndex = target.hand.findIndex((c) => c.name === 'beer');
-    const livingCount = state.players.filter((p) => !p.isEliminated).length;
-    if (beerIndex !== -1 && livingCount > 2) {
+    if (beerIndex !== -1) {
       const beer = target.hand.splice(beerIndex, 1)[0];
       state.discardPile.push(beer);
       target.currentHp += 1;

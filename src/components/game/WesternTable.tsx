@@ -95,7 +95,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
     }
 
     if (selectedCard.name === 'jail') {
-      return target.role !== 'sheriff' && !target.equipment.jail;
+      return !target.equipment.jail;
     }
 
     return false;

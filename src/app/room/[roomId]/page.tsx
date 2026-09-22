@@ -73,6 +73,9 @@ export default function RoomPage() {
   const [speakingPlayerIds, setSpeakingPlayerIds] = useState<string[]>([]);
   const isResizingChatRef = useRef<boolean>(false);
 
+  // Allow closing Game Over modal to inspect table and game logs
+  const [isGameOverModalDismissed, setIsGameOverModalDismissed] = useState<boolean>(false);
+
   // Persist log width & collapse preferences
   useEffect(() => {
     try {
@@ -315,6 +318,7 @@ export default function RoomPage() {
     }
     if (gameState?.status === 'lobby') {
       setHasShownReveal(false);
+      setIsGameOverModalDismissed(false);
     }
   }, [gameState?.status, gameState?.myPlayer?.character, hasShownReveal]);
 
@@ -613,7 +617,7 @@ export default function RoomPage() {
             </button>
           )}
           {/* Game Log Mobile Toggle Button */}
-          {gameState.status === 'playing' && (
+          {(gameState.status === 'playing' || gameState.status === 'game_over') && (
             <button
               onClick={() => setLogModalOpen(true)}
               className="text-[11px] sm:text-xs font-bold text-amber-300 hover:text-amber-200 bg-saloon-800 hover:bg-saloon-700 border border-amber-600/50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl transition-all shadow-sm flex items-center gap-1 active:scale-95 lg:hidden"
@@ -908,7 +912,7 @@ export default function RoomPage() {
           )}
 
           {/* Game Over Modal */}
-          {gameState.status === 'game_over' && gameState.winner && (
+          {gameState.status === 'game_over' && gameState.winner && !isGameOverModalDismissed && (
             <GameOverModal
               winner={gameState.winner}
               players={gameState.players}
@@ -916,7 +920,31 @@ export default function RoomPage() {
                 // Return to home or reload room
                 router.push('/');
               }}
+              onViewTable={() => {
+                setIsGameOverModalDismissed(true);
+              }}
             />
+          )}
+
+          {/* Game Over Sticky Review Banner when Modal is Dismissed */}
+          {gameState.status === 'game_over' && isGameOverModalDismissed && (
+            <div className="fixed top-14 left-1/2 -translate-x-1/2 bg-saloon-900/95 border-2 border-amber-500/80 text-amber-200 px-3.5 sm:px-5 py-2 rounded-2xl shadow-2xl z-40 flex items-center gap-2 sm:gap-4 text-xs font-bold backdrop-blur-md animate-in fade-in slide-in-from-top-2 select-none">
+              <span className="text-sm sm:text-base">🏆</span>
+              <span className="hidden sm:inline">بازی به پایان رسیده است — در حال بررسی میز و وقایع</span>
+              <span className="sm:hidden">پایان بازی</span>
+              <button
+                onClick={() => setIsGameOverModalDismissed(false)}
+                className="bg-amber-600 hover:bg-amber-500 active:scale-95 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow border border-amber-400 text-[11px] sm:text-xs font-black transition-all"
+              >
+                نتایج نهایی 🏆
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-zinc-300 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border border-saloon-700 text-[11px] sm:text-xs transition-colors"
+              >
+                خروج به لابی
+              </button>
+            </div>
           )}
 
           {/* Character & Role Reveal Modal (Auto-pops at game start or on button click) */}

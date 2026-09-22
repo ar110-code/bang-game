@@ -7,12 +7,14 @@ interface GameOverModalProps {
   winner: Role;
   players: PublicPlayer[];
   onBackToLobby: () => void;
+  onViewTable?: () => void;
 }
 
 export const GameOverModal: React.FC<GameOverModalProps> = ({
   winner,
   players,
   onBackToLobby,
+  onViewTable,
 }) => {
   useEffect(() => {
     confetti({
@@ -55,7 +57,16 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-saloon-900 border-2 border-amber-500/60 rounded-3xl p-6 max-w-xl w-full shadow-2xl text-center animate-in zoom-in-95 duration-300">
+      <div className="relative bg-saloon-900 border-2 border-amber-500/60 rounded-3xl p-6 max-w-xl w-full shadow-2xl text-center animate-in zoom-in-95 duration-300">
+        {onViewTable && (
+          <button
+            onClick={onViewTable}
+            className="absolute top-4 left-4 w-8 h-8 rounded-full bg-saloon-800 hover:bg-saloon-700 text-zinc-300 hover:text-white flex items-center justify-center text-sm font-bold border border-saloon-700 transition-colors"
+            title="مشاهده میز بازی"
+          >
+            ✕
+          </button>
+        )}
         <div className="text-4xl mb-2">🏆</div>
         <h2 className="text-2xl font-black text-amber-300 mb-2">{winInfo.title}</h2>
         <p className="text-xs text-zinc-300 mb-6 px-4">{winInfo.desc}</p>
@@ -89,12 +100,24 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={onBackToLobby}
-          className="w-full bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-bold text-sm py-3 px-6 rounded-2xl shadow-xl border border-amber-400 transition-transform"
-        >
-          بازگشت به لابی و بازی مجدد
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2.5">
+          {onViewTable && (
+            <button
+              onClick={onViewTable}
+              className="flex-1 bg-saloon-800 hover:bg-saloon-700 active:scale-95 text-amber-200 font-bold text-xs sm:text-sm py-3 px-4 rounded-2xl border border-amber-600/40 transition-all flex items-center justify-center gap-1.5 shadow"
+            >
+              <span>🔍</span>
+              <span>مشاهده میز بازی و وقایع</span>
+            </button>
+          )}
+          <button
+            onClick={onBackToLobby}
+            className="flex-1 bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-bold text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-xl border border-amber-400 transition-all flex items-center justify-center gap-1.5"
+          >
+            <span>🔄</span>
+            <span>بازگشت به لابی</span>
+          </button>
+        </div>
       </div>
     </div>
   );

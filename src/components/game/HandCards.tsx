@@ -395,6 +395,19 @@ export const HandCards: React.FC<HandCardsProps> = ({
                 <span>⚡ بازی کردن</span>
               </button>
             )}
+            {isMyTurn && !isDiscardPhase && selectedCard && (
+              <button
+                disabled={isEffectActive}
+                onClick={() => {
+                  onDiscardCard(selectedCard.id);
+                  onCancelSelection();
+                }}
+                className="bg-red-950/80 hover:bg-red-900/90 text-red-200 border border-red-700/60 disabled:opacity-40 disabled:pointer-events-none active:scale-95 text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl shadow transition-all flex items-center gap-1"
+                title="سوزاندن و دور انداختن این کارت در نوبت خود"
+              >
+                <span>🔥 سوزاندن</span>
+              </button>
+            )}
             <button
               onClick={onCancelSelection}
               className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl border border-zinc-600 transition-colors"
