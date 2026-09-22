@@ -128,34 +128,37 @@ export default function RoomPage() {
 
   // Compute table dynamic scale and max width class based on side panels and manual zoom
   const baseTableScale = useMemo(() => {
-    if (isMobile) {
-      if (isMobilePortrait) {
-        if (typeof window !== 'undefined') {
-          if (window.innerHeight < 680) {
-            return 0.82; // Phone screen with browser bars (like iPhone SE/8/Safari)
-          }
-          if (window.innerWidth < 375) {
-            return 0.86;
-          }
-          return 0.92;
+    if (isMobilePortrait) {
+      if (typeof window !== 'undefined') {
+        if (window.innerHeight < 680) {
+          return 0.76; // Phone screen with browser bars (like iPhone SE/8/Safari)
         }
-        return 0.86;
+        if (window.innerHeight < 780) {
+          return 0.80;
+        }
+        return 0.84;
       }
-      return 0.76;
+      return 0.80;
+    }
+
+    if (isMobile) {
+      return 0.74;
     }
 
     const leftWidth = isLogCollapsed ? 48 : gameLogWidth;
     const rightWidth = isChatHidden ? 0 : (isChatCollapsed ? 48 : chatWidth);
     const totalSideWidth = leftWidth + rightWidth;
 
-    if (totalSideWidth <= 100) return 1.15;
-    if (totalSideWidth <= 350) return 1.08;
-    if (totalSideWidth <= 580) return 0.98;
+    if (totalSideWidth <= 100) return 1.08;
+    if (totalSideWidth <= 350) return 1.02;
+    if (totalSideWidth <= 580) return 0.95;
     if (totalSideWidth <= 750) return 0.88;
     return 0.80;
   }, [isMobile, isMobilePortrait, isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
 
-  const currentTableScale = Math.max(0.55, Math.min(1.4, baseTableScale + tableZoomOffset));
+  const maxAllowedScale = isMobilePortrait ? 1.05 : 1.30;
+  const minAllowedScale = isMobilePortrait ? 0.60 : 0.65;
+  const currentTableScale = Math.max(minAllowedScale, Math.min(maxAllowedScale, baseTableScale + tableZoomOffset));
 
   const tableMaxWidthClass = useMemo(() => {
     if (isMobile) return 'max-w-full';
@@ -769,7 +772,7 @@ export default function RoomPage() {
             </div>
 
             {/* 2. Center Western Table with Dynamic Scale and centered Action Effects */}
-            <div className="flex-1 w-full h-full flex items-center justify-center relative overflow-hidden">
+            <div className="flex-1 w-full h-full flex items-center justify-center relative overflow-y-auto overflow-x-hidden scrollbar-none py-1 sm:py-2">
               <WesternTable
                 gameState={gameState}
                 myPlayerId={myPlayerId}

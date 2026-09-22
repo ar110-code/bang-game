@@ -153,9 +153,9 @@ export const WesternTable: React.FC<WesternTableProps> = ({
       <div
         className={`relative w-full ${
           isMobile
-            ? 'max-w-[340px] aspect-[9/13] max-h-[410px]'
+            ? 'max-w-[330px] aspect-[9/12] max-h-[380px]'
             : `${maxWidthClass || 'max-w-5xl'} h-full min-h-[300px] sm:min-h-[520px] max-h-full`
-        } flex items-center justify-center transition-all duration-300 origin-center`}
+        } flex items-center justify-center transition-all duration-300 origin-center my-auto`}
         style={{
           transform: `scale(${tableScale || 1})`,
         }}
@@ -164,7 +164,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
         <div
           className={`absolute ${
             isMobile
-              ? 'inset-1.5 rounded-[80px] border-[8px]'
+              ? 'inset-1 rounded-[70px] border-[6px]'
               : 'inset-2 sm:inset-10 rounded-[60px] sm:rounded-[200px] border-[8px] sm:border-[22px]'
           } western-felt border-[#361f14] outline outline-2 sm:outline-4 outline-amber-950/80 shadow-[inset_0_0_80px_rgba(0,0,0,0.85),0_25px_60px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden z-0`}
         >
@@ -172,16 +172,14 @@ export const WesternTable: React.FC<WesternTableProps> = ({
           <div
             className={`absolute ${
               isMobile
-                ? 'inset-2.5 rounded-[72px]'
+                ? 'inset-2 rounded-[64px]'
                 : 'inset-4 sm:inset-10 rounded-[50px] sm:rounded-[180px]'
             } border border-emerald-500/10 pointer-events-none`}
           />
 
-          {/* Table Center Features */}
+          {/* Table Center Features: Horizontal arrangement to save vertical space */}
           <div
-            className={`${
-              isMobile ? 'flex flex-col gap-1.5' : 'flex flex-row items-center gap-3 sm:gap-12'
-            } items-center justify-center z-10 select-none`}
+            className="flex flex-row items-center gap-2 sm:gap-12 justify-center z-10 select-none"
           >
             {/* Draw Deck Stack */}
             <div className="flex flex-col items-center">
@@ -241,13 +239,9 @@ export const WesternTable: React.FC<WesternTableProps> = ({
           const angle = Math.PI / 2 + (2 * Math.PI * index) / totalPlayers;
 
           // Safe Elliptical radii percentage from center:
-          // On mobile portrait (vertical table):
-          // rx is 34% to fit within phone screen bounds
-          // ry is 36% to utilize height without cutting off top/bottom players
-          // On desktop (horizontal table):
-          // rx is 36%, ry is 30%
-          const rx = isMobile ? 34 : 36;
-          const ry = isMobile ? 36 : 30;
+          // rx and ry calibrated so seats with badges never clip at the boundaries
+          const rx = isMobile ? 32 : 36;
+          const ry = isMobile ? 26 : 28;
 
           const leftPercent = 50 + rx * Math.cos(angle);
           const topPercent = 50 + ry * Math.sin(angle);
