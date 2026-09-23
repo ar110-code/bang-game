@@ -4,6 +4,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38bdf8?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
 [![Socket.io](https://img.shields.io/badge/Socket.io-4.8-white?style=for-the-badge&logo=socket.io)](https://socket.io/)
+[![CI](https://github.com/ar110-code/bang-game/actions/workflows/ci.yml/badge.svg)](https://github.com/ar110-code/bang-game/actions/workflows/ci.yml)
 
 پیاده‌سازی مدرن، کامل و بلادرنگ بازی فکری و کارتی محبوب جهانی **«غرب وحشی» (!BANG)** به زبان فارسی و با هوش مصنوعی ربات‌ها (Bots)، انیمیشن‌های نرم، صداگذاری وسترن و رابط کاربری واکنش‌گرا برای موبایل و کامپیوتر.
 
@@ -29,6 +30,28 @@
 - 📱 **طراحی کاملاً واکنش‌گرا (Responsive):** بهینه‌سازی دقیق میز و صندلی‌ها برای صفحه گوشی بدون هم‌پوشانی.
 
 ---
+
+## 📖 وضعیت پروژه
+
+این مخزن یک پروژه متن‌باز در حال توسعه است. معماری بازی، موتور قوانین، بات‌ها و لایه بلادرنگ در کد منبع تفکیک شده‌اند تا تغییر و آزمایش منطق بازی مستقل از رابط کاربری امکان‌پذیر باشد.
+
+> **نکته حقوقی:** انتشار کد این مخزن تحت MIT به‌خودی‌خود به معنی اعطای حقوق مربوط به نام، علائم تجاری، محتوای مالکیتی یا سایر حقوق اشخاص ثالث درباره بازی اصلی نیست. نام‌ها و اجزای متعلق به اشخاص ثالث باید مطابق حقوق و مجوزهای مربوط به آن‌ها استفاده شوند.
+
+## 🧪 تست و کیفیت کد
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+- `npm run typecheck` بررسی TypeScript را بدون تولید خروجی انجام می‌دهد.
+- `npm test` تست‌های smoke مربوط به موتور بازی را اجرا می‌کند.
+- GitHub Actions همین بررسی‌ها و build تولیدی را روی push و pull request اجرا می‌کند.
+
+## 🤝 مشارکت
+
+برای توسعه، تست، گزارش باگ و ارسال Pull Request به [CONTRIBUTING.md](CONTRIBUTING.md) مراجعه کنید. برای گزارش آسیب‌پذیری امنیتی، از [SECURITY.md](SECURITY.md) استفاده کنید.
 
 ## 🚀 راهنمای نصب و اجرای محلی (Quick Start)
 
@@ -86,4 +109,4 @@ bang-game/
 ---
 
 ## 📄 لایسنس
-این پروژه تحت مجوز MIT منتشر شده است.
+این پروژه تحت مجوز MIT منتشر شده است. متن کامل مجوز در فایل [LICENSE](LICENSE) قرار دارد.
