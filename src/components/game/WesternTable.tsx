@@ -153,7 +153,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
       <div
         className={`relative w-full ${
           isMobile
-            ? 'max-w-[330px] aspect-[9/12] max-h-[380px]'
+            ? 'max-w-[360px] w-[95%] h-[530px] max-h-[calc(100dvh-130px)] min-h-[460px]'
             : `${maxWidthClass || 'max-w-5xl'} h-full min-h-[300px] sm:min-h-[520px] max-h-full`
         } flex items-center justify-center transition-all duration-300 origin-center my-auto`}
         style={{
@@ -164,7 +164,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
         <div
           className={`absolute ${
             isMobile
-              ? 'inset-1 rounded-[70px] border-[6px]'
+              ? 'inset-1 rounded-[100px] border-[6px]'
               : 'inset-2 sm:inset-10 rounded-[60px] sm:rounded-[200px] border-[8px] sm:border-[22px]'
           } western-felt border-[#361f14] outline outline-2 sm:outline-4 outline-amber-950/80 shadow-[inset_0_0_80px_rgba(0,0,0,0.85),0_25px_60px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden z-0`}
         >
@@ -172,7 +172,7 @@ export const WesternTable: React.FC<WesternTableProps> = ({
           <div
             className={`absolute ${
               isMobile
-                ? 'inset-2 rounded-[64px]'
+                ? 'inset-2 rounded-[95px]'
                 : 'inset-4 sm:inset-10 rounded-[50px] sm:rounded-[180px]'
             } border border-emerald-500/10 pointer-events-none`}
           />
@@ -240,8 +240,8 @@ export const WesternTable: React.FC<WesternTableProps> = ({
 
           // Safe Elliptical radii percentage from center:
           // rx and ry calibrated so seats with badges never clip at the boundaries
-          const rx = isMobile ? 32 : 36;
-          const ry = isMobile ? 26 : 28;
+          const rx = isMobile ? 34 : 36;
+          const ry = isMobile ? 38 : 28;
 
           const leftPercent = 50 + rx * Math.cos(angle);
           const topPercent = 50 + ry * Math.sin(angle);

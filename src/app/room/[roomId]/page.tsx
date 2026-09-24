@@ -134,18 +134,18 @@ export default function RoomPage() {
     if (isMobilePortrait) {
       if (typeof window !== 'undefined') {
         if (window.innerHeight < 680) {
-          return 0.76; // Phone screen with browser bars (like iPhone SE/8/Safari)
+          return 0.82; // Phone screen with browser bars (like iPhone SE/8/Safari)
         }
         if (window.innerHeight < 780) {
-          return 0.80;
+          return 0.88;
         }
-        return 0.84;
+        return 0.94;
       }
-      return 0.80;
+      return 0.88;
     }
 
     if (isMobile) {
-      return 0.74;
+      return 0.78;
     }
 
     const leftWidth = isLogCollapsed ? 48 : gameLogWidth;
@@ -159,7 +159,7 @@ export default function RoomPage() {
     return 0.80;
   }, [isMobile, isMobilePortrait, isLogCollapsed, gameLogWidth, isChatHidden, isChatCollapsed, chatWidth]);
 
-  const maxAllowedScale = isMobilePortrait ? 1.05 : 1.30;
+  const maxAllowedScale = isMobilePortrait ? 1.20 : 1.30;
   const minAllowedScale = isMobilePortrait ? 0.60 : 0.65;
   const currentTableScale = Math.max(minAllowedScale, Math.min(maxAllowedScale, baseTableScale + tableZoomOffset));
 
